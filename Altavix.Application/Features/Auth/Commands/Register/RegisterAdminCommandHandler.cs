@@ -1,11 +1,13 @@
 using Altavix.Domain;
+using Altavix.Application.Models;
+using Altavix.Application.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 
 namespace Altavix.Application.Features.Auth.Commands.Register;
 
-public class RegisterAdminCommandHandler : IRequestHandler<RegisterAdminCommand, Guid>
+public class RegisterAdminCommandHandler : IRequestHandler<RegisterAdminCommand, ApiResponseDto<Guid>>
 {
     private readonly UserManager<UserEntity> _userManager;
     private readonly IConfiguration _configuration;
@@ -16,19 +18,18 @@ public class RegisterAdminCommandHandler : IRequestHandler<RegisterAdminCommand,
         _configuration = configuration;
     }
 
-    public async Task<Guid> Handle(RegisterAdminCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponseDto<Guid>> Handle(RegisterAdminCommand request, CancellationToken cancellationToken)
     {
         if (request.Password != request.ConfirmPassword)
         {
-            throw new Exception("Passwords do not match.");
+            return new ApiResponseDto<Guid> { Message = "Паролі не співпадають", Type = ResponseMessageType.Error };
         }
 
         var secretKey = _configuration["AdminRegistrationKey"];
         if (string.IsNullOrEmpty(secretKey) || request.SecretKey != secretKey)
         {
-            throw new Exception("Invalid Secret Key for Admin Registration.");
+            return new ApiResponseDto<Guid> { Message = "Невірний Secret Key для реєстрації адміністратора", Type = ResponseMessageType.Error };
         }
-
         
         var user = new UserEntity
         {
@@ -45,11 +46,16 @@ public class RegisterAdminCommandHandler : IRequestHandler<RegisterAdminCommand,
         if (!result.Succeeded)
         {
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            throw new Exception($"Failed to create admin: {errors}");
+            return new ApiResponseDto<Guid> { Message = $"Помилка створення адміна: {errors}", Type = ResponseMessageType.Error };
         }
 
         await _userManager.AddToRoleAsync(user, "Admin");
 
-        return user.Id;
+        return new ApiResponseDto<Guid>
+        {
+            Data = user.Id,
+            Message = "Адміністратора успішно зареєстровано",
+            Type = ResponseMessageType.Success
+        };
     }
 }

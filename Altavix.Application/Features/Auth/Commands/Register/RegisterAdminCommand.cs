@@ -1,8 +1,9 @@
 using MediatR;
+using Altavix.Application.Models;
 
 namespace Altavix.Application.Features.Auth.Commands.Register;
 
-public class RegisterAdminCommand : IRequest<Guid>
+public class RegisterAdminCommand : IRequest<ApiResponseDto<Guid>>
 {
     public string Email { get; set; } = string.Empty;
     public string FirstName { get; set; } = string.Empty;

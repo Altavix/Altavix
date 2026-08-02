@@ -2,13 +2,15 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Altavix.Application.Features.Auth.DTOs;
 using Altavix.Application.Interfaces;
+using Altavix.Application.Models;
+using Altavix.Application.Enums;
 using Altavix.Domain;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 
 namespace Altavix.Application.Features.Auth.Commands.Refresh;
 
-public class RefreshCommandHandler : IRequestHandler<RefreshCommand, AuthResponseDto>
+public class RefreshCommandHandler : IRequestHandler<RefreshCommand, ApiResponseDto<AuthResponseDto>>
 {
     private readonly UserManager<UserEntity> _userManager;
     private readonly IJwtProvider _jwtProvider;
@@ -21,13 +23,12 @@ public class RefreshCommandHandler : IRequestHandler<RefreshCommand, AuthRespons
         _jwtProvider = jwtProvider;
     }
 
-    public async Task<AuthResponseDto> Handle(RefreshCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponseDto<AuthResponseDto>> Handle(RefreshCommand request, CancellationToken cancellationToken)
     {
-        // Extract principal from old access token
         var handler = new JwtSecurityTokenHandler();
         if (!handler.CanReadToken(request.AccessToken))
         {
-            throw new Exception("Invalid access token.");
+            return new ApiResponseDto<AuthResponseDto> { Message = "Невірний access токен", Type = ResponseMessageType.Error };
         }
 
         var jwtToken = handler.ReadJwtToken(request.AccessToken);
@@ -35,13 +36,13 @@ public class RefreshCommandHandler : IRequestHandler<RefreshCommand, AuthRespons
 
         if (string.IsNullOrEmpty(emailClaim))
         {
-            throw new Exception("Invalid token claims.");
+            return new ApiResponseDto<AuthResponseDto> { Message = "Невірні дані у токені", Type = ResponseMessageType.Error };
         }
 
         var user = await _userManager.FindByEmailAsync(emailClaim);
         if (user == null || user.RefreshToken != request.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
         {
-            throw new Exception("Invalid client request.");
+            return new ApiResponseDto<AuthResponseDto> { Message = "Недійсний клієнтський запит", Type = ResponseMessageType.Error };
         }
 
         var newAccessToken = _jwtProvider.Generate(user);
@@ -51,11 +52,16 @@ public class RefreshCommandHandler : IRequestHandler<RefreshCommand, AuthRespons
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
         await _userManager.UpdateAsync(user);
 
-        return new AuthResponseDto
+        return new ApiResponseDto<AuthResponseDto>
         {
-            Email = user.Email ?? string.Empty,
-            Token = newAccessToken,
-            RefreshToken = newRefreshToken
+            Data = new AuthResponseDto
+            {
+                Email = user.Email ?? string.Empty,
+                Token = newAccessToken,
+                RefreshToken = newRefreshToken
+            },
+            Message = "Токен успішно оновлено",
+            Type = ResponseMessageType.Success
         };
     }
 }
