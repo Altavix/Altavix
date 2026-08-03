@@ -1,4 +1,4 @@
-﻿namespace Altavix.Domain;
+namespace Altavix.Domain;
 
 public class ProductEntity
 {
@@ -9,5 +9,9 @@ public class ProductEntity
     public int PriceCoin {get; set;}
     public Guid UserCreatorId {get; set;}
     public UserEntity UserCreator {get; set;}
-    public List<CategoryEntity> Categories{get; set;}
+    public List<CategoryEntity> Categories { get; set; } = new();
+    public List<ProductImageEntity> Images { get; set; } = new();
+    
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 }

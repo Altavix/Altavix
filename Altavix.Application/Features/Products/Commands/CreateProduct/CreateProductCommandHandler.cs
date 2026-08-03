@@ -25,14 +25,25 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
 
     public async Task<Guid> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
+        var productId = Guid.NewGuid();
+
         var entity = new ProductEntity()
         {
-            Id = Guid.NewGuid(),
+            Id = productId,
             Title = request.Title,
             Description = request.Description,
+            Price = request.Price,
+            PriceCoin = request.PriceCoin,
+            CreatedAt = DateTime.UtcNow,
             UserCreator = await _userRepository.GetByIdAsync(request.UserCreatorId),
             UserCreatorId = request.UserCreatorId,
-            Categories = _categoryRepository.Where(c => request.CategoryIds.Contains(c.Id)).ToList()
+            Categories = _categoryRepository.Where(c => request.CategoryIds.Contains(c.Id)).ToList(),
+            Images = request.Images.Select(img => new ProductImageEntity 
+            { 
+                Id = Guid.NewGuid(), 
+                ProductId = productId, 
+                ImageContent = img 
+            }).ToList()
         };
         
         await _productRepository.AddAsync(entity);

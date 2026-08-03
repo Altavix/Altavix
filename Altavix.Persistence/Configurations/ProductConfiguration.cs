@@ -25,8 +25,19 @@ public class ProductConfiguration : IEntityTypeConfiguration<ProductEntity>
         builder.Property(p => p.PriceCoin)
             .IsRequired();
 
-        // EF Core will automatically map the many-to-many relationship with Categories
+        builder.Property(p => p.CreatedAt)
+            .IsRequired()
+            .HasDefaultValueSql("GETUTCDATE()");
+
+        builder.Property(p => p.UpdatedAt)
+            .IsRequired(false);
+
         builder.HasMany(p => p.Categories)
             .WithMany(); 
+
+        builder.HasMany(p => p.Images)
+            .WithOne(i => i.Product)
+            .HasForeignKey(i => i.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -6,13 +6,13 @@ using Dapper;
 
 namespace Altavix.Application.Features.Products.Queries.GetProducts;
 
-public class GetProductsListQueryHandler : BaseQueryHandler, IRequestHandler<GetProductsListQuery, PaginatedList<ProductVm>>
+public class GetAdminProductsListQueryHandler : BaseQueryHandler, IRequestHandler<GetAdminProductsListQuery, PaginatedList<AdminProductVm>>
 {
-    public GetProductsListQueryHandler(IDbConnectionFactory connectionProvider) : base(connectionProvider)
+    public GetAdminProductsListQueryHandler(IDbConnectionFactory connectionProvider) : base(connectionProvider)
     {
     }
 
-    public async Task<PaginatedList<ProductVm>> Handle(GetProductsListQuery request, CancellationToken cancellationToken)
+    public async Task<PaginatedList<AdminProductVm>> Handle(GetAdminProductsListQuery request, CancellationToken cancellationToken)
     {
         const string sql = @"
             DECLARE @Offset INT = (@PageNumber - 1) * @PageSize;
@@ -20,7 +20,7 @@ public class GetProductsListQueryHandler : BaseQueryHandler, IRequestHandler<Get
             SELECT COUNT(1) FROM Products;
 
             SELECT 
-                Id, Title, Description, Price, PriceCoin
+                Id, Title, Description, Price, PriceCoin, CreatedAt, UpdatedAt, UserCreatorId
             FROM Products
             ORDER BY CreatedAt DESC
             OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
@@ -29,7 +29,7 @@ public class GetProductsListQueryHandler : BaseQueryHandler, IRequestHandler<Get
         var (totalCount, products) = await QueryMultipleAsync(sql, async reader =>
         {
             var count = await reader.ReadSingleAsync<int>();
-            var prods = (await reader.ReadAsync<ProductVm>()).ToList();
+            var prods = (await reader.ReadAsync<AdminProductVm>()).ToList();
             return (count, prods);
         }, new { request.PageNumber, request.PageSize });
 
@@ -56,7 +56,6 @@ public class GetProductsListQueryHandler : BaseQueryHandler, IRequestHandler<Get
             }, new { ProductIds = productIds });
         }
 
-        return new PaginatedList<ProductVm>(products, totalCount, request.PageNumber, request.PageSize);
+        return new PaginatedList<AdminProductVm>(products, totalCount, request.PageNumber, request.PageSize);
     }
 }
-

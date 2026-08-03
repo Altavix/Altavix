@@ -10,6 +10,7 @@ public class AltavixDbContext : IdentityDbContext<UserEntity, RoleEntity, Guid>,
 {
     public DbSet<CategoryEntity> Categories { get; set; }
     public DbSet<ProductEntity> Products { get; set; }
+    public DbSet<ProductImageEntity> ProductImages { get; set; }
 
     public AltavixDbContext(DbContextOptions<AltavixDbContext> options) : base(options) {}
 
