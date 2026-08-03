@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.AddJsonFile("secrets.json", optional: true, reloadOnChange: true);
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 //builder.Services.AddOpenApi();
@@ -17,6 +18,19 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplivation();
 builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddControllers();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 // Configure Identity
 builder.Services.AddIdentityCore<UserEntity>()
@@ -56,15 +70,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(config =>
     {
         config.RoutePrefix = string.Empty;
-        config.SwaggerEndpoint("swagger/v1/swagger.json", "Flashcards API V1");
-        config.OAuthClientId("flashcards-api-swagger");
-        config.OAuthScopes("FlashcardsWebApi");
+        config.SwaggerEndpoint("swagger/v1/swagger.json", "Altavix API V1");
+        config.OAuthClientId("altavix-api-swagger");
+        config.OAuthScopes("AltavixWebApi");
         config.OAuthUsePkce();
 
     });
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -72,7 +87,9 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AltavixDbContext>();
     DbInitializer.Initialize(context);
+
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<RoleEntity>>();
+    await RolesInitializer.InitializeAsync(roleManager);
 }
-
+app.MapControllers();
 app.Run();
-

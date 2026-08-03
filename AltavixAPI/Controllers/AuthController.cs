@@ -1,45 +1,65 @@
-using Altavix.Application.Features.Auth.DTOs;
-using Altavix.Application.Interfaces;
+using Altavix.Application.Features.Auth.Commands.Login;
+using Altavix.Application.Features.Auth.Commands.Register;
+using Altavix.Application.Features.Auth.Commands.Refresh;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AltavixAPI.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-public class AuthController : ControllerBase
+public class AuthController : BaseController
 {
-    private readonly IAuthService _authService;
-
-    public AuthController(IAuthService authService)
+    [HttpPost("register")]
+    public async Task<ActionResult> Register([FromBody] RegisterCommand command)
     {
-        _authService = authService;
+        try
+        {
+            var result = await Mediator.Send(command);
+            return HandleResult(result);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
+    }
+
+    [HttpPost("register-admin")]
+    public async Task<ActionResult> RegisterAdmin([FromBody] RegisterAdminCommand command)
+    {
+        try
+        {
+            var result = await Mediator.Send(command);
+            return HandleResult(result);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<AuthResponseDto>> Login([FromBody] LoginDto request)
+    public async Task<ActionResult> Login([FromBody] LoginCommand command)
     {
         try
         {
-            var response = await _authService.LoginAsync(request);
-            return Ok(response);
+            var result = await Mediator.Send(command);
+            return HandleResult(result);
         }
         catch (Exception ex)
         {
-            return Unauthorized(ex.Message);
+            return HandleError(ex);
         }
     }
 
-    [HttpPost("register")]
-    public async Task<ActionResult<AuthResponseDto>> Register([FromBody] RegisterDto request)
+    [HttpPost("refresh")]
+    public async Task<ActionResult> Refresh([FromBody] RefreshCommand command)
     {
         try
         {
-            var response = await _authService.RegisterAsync(request);
-            return Ok(response);
+            var result = await Mediator.Send(command);
+            return HandleResult(result);
         }
         catch (Exception ex)
         {
-            return BadRequest(ex.Message);
+            return HandleError(ex);
         }
     }
 }

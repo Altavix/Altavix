@@ -4,10 +4,31 @@ using Altavix.Application.Features.Categories.Commands.DeleteCategory;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+using Altavix.Application.Features.Categories.Queries.GetCategoriesList;
+using Altavix.Application.Features.Categories.Queries.GetCategoryById;
+using Altavix.Application.Features.Categories.ViewModels;
+using Altavix.Application.Features.Categories.DTOs;
+
 namespace AltavixAPI.Controllers;
 
 public class CategoryController : BaseController
 {
+    [HttpGet]
+    public async Task<ActionResult<CategoriesListVm>> Get()
+    {
+        var query = new GetCategoriesListQuery();
+        var result = await Mediator.Send(query);
+        return Ok(result);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<CategoryVm>> GetById(Guid id)
+    {
+        var category = await Mediator.Send(new GetCategoryByIdQuery(id));
+        if (category == null) return NotFound();
+        return Ok(category);
+    }
+
     [HttpPost]
     [Authorize]
     public async Task<ActionResult<Guid>> Create([FromBody] CreateCategoryCommand command)
