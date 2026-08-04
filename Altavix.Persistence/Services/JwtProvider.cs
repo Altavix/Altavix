@@ -17,7 +17,7 @@ public class JwtProvider : IJwtProvider
         _configuration = configuration;
     }
 
-    public string Generate(UserEntity user)
+    public string Generate(UserEntity user, IList<string> roles)
     {
         var claims = new List<Claim>
         {
@@ -25,6 +25,11 @@ public class JwtProvider : IJwtProvider
             new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
+
+        foreach (var role in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
 
         var secret = _configuration["JwtSettings:Secret"];
         var issuer = _configuration["JwtSettings:Issuer"];

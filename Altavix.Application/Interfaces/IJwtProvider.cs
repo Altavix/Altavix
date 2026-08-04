@@ -4,6 +4,6 @@ namespace Altavix.Application.Interfaces;
 
 public interface IJwtProvider
 {
-    string Generate(UserEntity user);
+    string Generate(UserEntity user, IList<string> roles);
     string GenerateRefreshToken();
 }

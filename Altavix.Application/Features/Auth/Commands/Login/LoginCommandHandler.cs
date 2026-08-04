@@ -35,7 +35,9 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponseDto<
             return new ApiResponseDto<AuthResponseDto> { Message = "Невірний email або пароль", Type = ResponseMessageType.Error };
         }
 
-        var token = _jwtProvider.Generate(user);
+        var roles = await _userManager.GetRolesAsync(user);
+
+        var token = _jwtProvider.Generate(user, roles);
         var refreshToken = _jwtProvider.GenerateRefreshToken();
 
         user.RefreshToken = refreshToken;

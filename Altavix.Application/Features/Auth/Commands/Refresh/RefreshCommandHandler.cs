@@ -42,10 +42,12 @@ public class RefreshCommandHandler : IRequestHandler<RefreshCommand, ApiResponse
         var user = await _userManager.FindByEmailAsync(emailClaim);
         if (user == null || user.RefreshToken != request.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
         {
-            return new ApiResponseDto<AuthResponseDto> { Message = "Недійсний клієнтський запит", Type = ResponseMessageType.Error };
+            return new ApiResponseDto<AuthResponseDto> { Message = "Недійсний або прострочений токен", Type = ResponseMessageType.Error };
         }
 
-        var newAccessToken = _jwtProvider.Generate(user);
+        var roles = await _userManager.GetRolesAsync(user);
+
+        var newAccessToken = _jwtProvider.Generate(user, roles);
         var newRefreshToken = _jwtProvider.GenerateRefreshToken();
 
         user.RefreshToken = newRefreshToken;
