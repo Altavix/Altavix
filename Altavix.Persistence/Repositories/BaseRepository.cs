@@ -8,7 +8,6 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
 {
     protected readonly AltavixDbContext _context;
 
-    // We inject DbContext directly so we don't have compilation errors until you define ApplicationDbContext
     public BaseRepository(AltavixDbContext context)
     {
         _context = context;

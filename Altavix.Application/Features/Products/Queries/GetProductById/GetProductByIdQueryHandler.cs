@@ -16,12 +16,12 @@ public class GetProductByIdQueryHandler : BaseQueryHandler, IRequestHandler<GetP
         const string sql = @"
             SELECT 
                 Id, Title, Description, Price, PriceCoin 
-            FROM Products 
+            FROM tbProducts 
             WHERE Id = @Id;
 
-            SELECT ImageContent FROM ProductImages WHERE ProductId = @Id;
+            SELECT ImageContent FROM tbProductImages WHERE ProductId = @Id;
 
-            SELECT CategoriesId FROM CategoryEntityProductEntity WHERE ProductEntityId = @Id;
+            SELECT CategoriesId FROM tbCategoryProduct WHERE ProductEntityId = @Id;
         ";
 
         return await QueryMultipleAsync(sql, async reader =>

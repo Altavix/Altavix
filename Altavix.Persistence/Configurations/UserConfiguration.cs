@@ -8,8 +8,7 @@ public class UserConfiguration : IEntityTypeConfiguration<UserEntity>
 {
     public void Configure(EntityTypeBuilder<UserEntity> builder)
     {
-        // Clean up the default AspNetUsers table name
-        builder.ToTable("Users");
+        builder.ToTable("tbUsers");
 
         builder.Property(u => u.FirstName)
             .HasMaxLength(50);

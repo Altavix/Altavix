@@ -1,3 +1,4 @@
+using Altavix.Application.Enums;
 using Altavix.Application.Features.Auth.Commands.Login;
 using Altavix.Application.Features.Auth.Commands.Register;
 using Altavix.Application.Features.Auth.Commands.Refresh;
@@ -35,12 +36,37 @@ public class AuthController : BaseController
         }
     }
 
+    private void SetTokensInsideCookie(string accessToken, string refreshToken)
+    {
+        var refreshOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true, // true required for SameSite=None
+            SameSite = SameSiteMode.None,
+            Expires = DateTime.UtcNow.AddDays(7)
+        };
+        Response.Cookies.Append("refreshToken", refreshToken, refreshOptions);
+
+        var accessOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Expires = DateTime.UtcNow.AddMinutes(60) // Should match JWT config
+        };
+        Response.Cookies.Append("accessToken", accessToken, accessOptions);
+    }
+
     [HttpPost("login")]
     public async Task<ActionResult> Login([FromBody] LoginCommand command)
     {
         try
         {
             var result = await Mediator.Send(command);
+            if (result.MessageType == "success" && result.Data != null)
+            {
+                SetTokensInsideCookie(result.Data.Token, result.Data.RefreshToken);
+            }
             return HandleResult(result);
         }
         catch (Exception ex)
@@ -50,16 +76,42 @@ public class AuthController : BaseController
     }
 
     [HttpPost("refresh")]
-    public async Task<ActionResult> Refresh([FromBody] RefreshCommand command)
+    public async Task<ActionResult> Refresh([FromBody] RefreshCommand? command)
     {
         try
         {
+            command ??= new RefreshCommand();
+            
+            // If tokens are not in body, try to get from cookies
+            if (string.IsNullOrEmpty(command.RefreshToken))
+                command.RefreshToken = Request.Cookies["refreshToken"] ?? string.Empty;
+                
+            if (string.IsNullOrEmpty(command.AccessToken))
+                command.AccessToken = Request.Cookies["accessToken"] ?? string.Empty;
+
             var result = await Mediator.Send(command);
+            if (result.MessageType == "success" && result.Data != null)
+            {
+                SetTokensInsideCookie(result.Data.Token, result.Data.RefreshToken);
+            }
             return HandleResult(result);
         }
         catch (Exception ex)
         {
             return HandleError(ex);
         }
+    }
+
+    [HttpPost("logout")]
+    public ActionResult Logout()
+    {
+        Response.Cookies.Delete("accessToken", new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None });
+        Response.Cookies.Delete("refreshToken", new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None });
+        
+        return Ok(new Altavix.Application.Models.ApiResponseDto<string>
+        {
+            Type = ResponseMessageType.Success,
+            Message = "Successfully logged out"
+        });
     }
 }

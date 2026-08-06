@@ -58,15 +58,31 @@ public class ProductController : BaseController
         {
             command.UserCreatorId = Guid.Parse(userId);
         }
-        return await Mediator.Send(command);
+        
+        try 
+        {
+            var result = await Mediator.Send(command);
+            return Ok(result);
+        } 
+        catch (Exception ex) 
+        {
+            return StatusCode(500, ex.ToString());
+        }
     }
 
     [HttpPut]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult> Update([FromBody] UpdateProductCommand command)
     {
-        await Mediator.Send(command);
-        return NoContent();
+        try 
+        {
+            await Mediator.Send(command);
+            return NoContent();
+        } 
+        catch (Exception ex) 
+        {
+            return StatusCode(500, ex.ToString());
+        }
     }
 
     [HttpDelete("{id}")]

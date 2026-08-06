@@ -17,11 +17,11 @@ public class GetAdminProductsListQueryHandler : BaseQueryHandler, IRequestHandle
         const string sql = @"
             DECLARE @Offset INT = (@PageNumber - 1) * @PageSize;
 
-            SELECT COUNT(1) FROM Products;
+            SELECT COUNT(1) FROM tbProducts;
 
             SELECT 
                 Id, Title, Description, Price, PriceCoin, CreatedAt, UpdatedAt, UserCreatorId
-            FROM Products
+            FROM tbProducts
             ORDER BY CreatedAt DESC
             OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
         ";
@@ -38,8 +38,8 @@ public class GetAdminProductsListQueryHandler : BaseQueryHandler, IRequestHandle
             var productIds = products.Select(p => p.Id).ToArray();
             
             const string relatedSql = @"
-                SELECT ProductId, ImageContent FROM ProductImages WHERE ProductId IN @ProductIds;
-                SELECT ProductEntityId, CategoriesId FROM CategoryEntityProductEntity WHERE ProductEntityId IN @ProductIds;
+                SELECT ProductId, ImageContent FROM tbProductImages WHERE ProductId IN @ProductIds;
+                SELECT ProductEntityId, CategoriesId FROM tbCategoryProduct WHERE ProductEntityId IN @ProductIds;
             ";
 
             await QueryMultipleAsync(relatedSql, async reader =>

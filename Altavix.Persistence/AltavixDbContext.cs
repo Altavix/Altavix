@@ -19,5 +19,15 @@ public class AltavixDbContext : IdentityDbContext<UserEntity, RoleEntity, Guid>,
         base.OnModelCreating(modelBuilder);
         
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            var tableName = entityType.GetTableName();
+            if (!string.IsNullOrEmpty(tableName) && !tableName.StartsWith("tb"))
+            {
+                var newName = tableName.Replace("AspNet", "");
+                entityType.SetTableName("tb" + newName);
+            }
+        }
     }
 }

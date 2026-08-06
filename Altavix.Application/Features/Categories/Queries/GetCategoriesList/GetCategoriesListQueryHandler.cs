@@ -17,7 +17,7 @@ public class GetCategoriesListQueryHandler : BaseQueryHandler, IRequestHandler<G
             SELECT 
                 Id, 
                 Title 
-            FROM Categories";
+            FROM tbCategories";
 
         var categories = await QueryAsync<CategoryDto>(sql);
         

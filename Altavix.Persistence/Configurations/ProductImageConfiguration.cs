@@ -8,7 +8,7 @@ public class ProductImageConfiguration : IEntityTypeConfiguration<ProductImageEn
 {
     public void Configure(EntityTypeBuilder<ProductImageEntity> builder)
     {
-        builder.ToTable("ProductImages");
+        builder.ToTable("tbProductImages");
 
         builder.HasKey(pi => pi.Id);
 

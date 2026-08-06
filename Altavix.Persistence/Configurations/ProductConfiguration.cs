@@ -8,7 +8,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<ProductEntity>
 {
     public void Configure(EntityTypeBuilder<ProductEntity> builder)
     {
-        builder.ToTable("Products");
+        builder.ToTable("tbProducts");
 
         builder.HasKey(p => p.Id);
 
@@ -33,7 +33,8 @@ public class ProductConfiguration : IEntityTypeConfiguration<ProductEntity>
             .IsRequired(false);
 
         builder.HasMany(p => p.Categories)
-            .WithMany(); 
+            .WithMany()
+            .UsingEntity(j => j.ToTable("tbCategoryProduct")); 
 
         builder.HasMany(p => p.Images)
             .WithOne(i => i.Product)

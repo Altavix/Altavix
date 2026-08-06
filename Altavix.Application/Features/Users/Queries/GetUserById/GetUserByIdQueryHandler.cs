@@ -20,7 +20,7 @@ public class GetUserByIdQueryHandler : BaseQueryHandler, IRequestHandler<GetUser
                 Email, 
                 FirstName, 
                 LastName 
-            FROM AspNetUsers 
+            FROM tbUsers 
             WHERE Id = @Id";
 
         return await QueryFirstOrDefaultAsync<UserVm>(sql, new { request.Id });

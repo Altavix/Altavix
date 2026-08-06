@@ -17,7 +17,7 @@ public class GetCategoryByIdQueryHandler : BaseQueryHandler, IRequestHandler<Get
             SELECT 
                 Id, 
                 Title 
-            FROM Categories 
+            FROM tbCategories 
             WHERE Id = @Id";
 
         return await QueryFirstOrDefaultAsync<CategoryVm>(sql, new { request.Id });

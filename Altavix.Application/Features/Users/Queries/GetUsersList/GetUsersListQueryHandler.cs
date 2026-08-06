@@ -22,7 +22,7 @@ public class GetUsersListQueryHandler : BaseQueryHandler, IRequestHandler<GetUse
                 LastName, 
                 MiddleName, 
                 PhoneNumber 
-            FROM AspNetUsers";
+            FROM tbUsers";
 
         var users = await QueryAsync<UserDto>(sql);
 

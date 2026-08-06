@@ -60,7 +60,9 @@ public class RefreshCommandHandler : IRequestHandler<RefreshCommand, ApiResponse
             {
                 Email = user.Email ?? string.Empty,
                 Token = newAccessToken,
-                RefreshToken = newRefreshToken
+                RefreshToken = newRefreshToken,
+                Role = roles.FirstOrDefault() ?? string.Empty,
+                UserId = user.Id.ToString()
             },
             Message = "Токен успішно оновлено",
             Type = ResponseMessageType.Success

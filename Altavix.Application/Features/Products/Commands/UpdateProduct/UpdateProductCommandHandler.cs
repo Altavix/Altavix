@@ -1,5 +1,5 @@
-using Altavix.Application.Interfaces;
 using Altavix.Domain;
+using Altavix.Domain.Repositories;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,22 +7,26 @@ namespace Altavix.Application.Features.Products.Commands.UpdateProduct;
 
 public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, Unit>
 {
-    private readonly IAltavixDbContext _context;
+    private readonly IProductRepository _productRepository;
+    private readonly ICategoryRepository _categoryRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public UpdateProductCommandHandler(IAltavixDbContext context)
+    public UpdateProductCommandHandler(
+        IProductRepository productRepository,
+        ICategoryRepository categoryRepository,
+        IUnitOfWork unitOfWork)
     {
-        _context = context;
+        _productRepository = productRepository;
+        _categoryRepository = categoryRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Unit> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
-        var entity = await _context.Products
-            .Include(p => p.Categories)
-            .Include(p => p.Images)
-            .FirstOrDefaultAsync(p => p.Id == request.Id, cancellationToken);
+        var entity = await _productRepository.GetProductWithDetailsAsync(request.Id, cancellationToken);
 
         if (entity == null)
-            throw new Exception($"Product with id {request.Id} not found."); // We should use a proper NotFoundException later
+            throw new Exception($"Product with id {request.Id} not found.");
 
         entity.Title = request.Title;
         entity.Description = request.Description;
@@ -30,30 +34,59 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
         entity.PriceCoin = request.PriceCoin;
         entity.UpdatedAt = DateTime.UtcNow;
 
-        // Update Categories
-        entity.Categories.Clear();
-        var newCategories = await _context.Categories
-            .Where(c => request.CategoryIds.Contains(c.Id))
-            .ToListAsync(cancellationToken);
+        // Update Categories safely
+        var existingCategoryIds = entity.Categories.Select(c => c.Id).ToList();
         
-        foreach (var category in newCategories)
+        var categoriesToRemove = entity.Categories.Where(c => !request.CategoryIds.Contains(c.Id)).ToList();
+        foreach(var c in categoriesToRemove)
         {
-            entity.Categories.Add(category);
+            entity.Categories.Remove(c);
+        }
+        
+        var categoriesToAddIds = request.CategoryIds.Where(id => !existingCategoryIds.Contains(id)).ToList();
+        if (categoriesToAddIds.Any())
+        {
+            var newCategories = _categoryRepository.Where(c => categoriesToAddIds.Contains(c.Id)).ToList();
+            
+            foreach (var category in newCategories)
+            {
+                entity.Categories.Add(category);
+            }
         }
 
-        // Update Images
-        entity.Images.Clear();
-        foreach (var img in request.Images)
+        // Update Images safely using standard tracking collection
+        var existingImages = entity.Images.ToList();
+        
+        // Remove images that are no longer present
+        var imagesToRemove = existingImages.Where(i => !request.Images.Contains(i.ImageContent)).ToList();
+        foreach (var img in imagesToRemove)
+        {
+            entity.Images.Remove(img);
+        }
+
+        // Add new images
+        var newImageContents = request.Images.Where(img => !existingImages.Any(e => e.ImageContent == img)).ToList();
+        foreach (var imgContent in newImageContents)
         {
             entity.Images.Add(new ProductImageEntity 
             {
                 Id = Guid.NewGuid(),
                 ProductId = entity.Id,
-                ImageContent = img
+                ImageContent = imgContent
             });
         }
+        
+        _productRepository.Update(entity);
 
-        await _context.SaveChangesAsync(cancellationToken);
+        try 
+        {
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            var failingEntities = string.Join(", ", ex.Entries.Select(e => e.Entity.GetType().Name));
+            throw new Exception($"Concurrency exception on entities: {failingEntities}. Details: {ex.Message}");
+        }
 
         return Unit.Value;
     }

@@ -9,4 +9,12 @@ public class ProductRepository : BaseRepository<ProductEntity>, IProductReposito
     public ProductRepository(AltavixDbContext context) : base(context)
     {
     }
+
+    public async Task<ProductEntity?> GetProductWithDetailsAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Products
+            .Include(p => p.Categories)
+            .Include(p => p.Images)
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+    }
 }

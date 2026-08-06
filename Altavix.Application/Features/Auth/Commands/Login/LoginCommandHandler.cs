@@ -41,7 +41,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponseDto<
         var refreshToken = _jwtProvider.GenerateRefreshToken();
 
         user.RefreshToken = refreshToken;
-        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // 7 days valid
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
         await _userManager.UpdateAsync(user);
 
         return new ApiResponseDto<AuthResponseDto>
@@ -50,7 +50,9 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponseDto<
             {
                 Email = user.Email ?? string.Empty,
                 Token = token,
-                RefreshToken = refreshToken
+                RefreshToken = refreshToken,
+                Role = roles.FirstOrDefault() ?? string.Empty,
+                UserId = user.Id.ToString()
             },
             Message = "Успішний вхід",
             Type = ResponseMessageType.Success

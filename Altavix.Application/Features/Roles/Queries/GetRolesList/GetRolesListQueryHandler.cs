@@ -18,7 +18,7 @@ public class GetRolesListQueryHandler : BaseQueryHandler, IRequestHandler<GetRol
             SELECT 
                 Id, 
                 Name 
-            FROM AspNetRoles";
+            FROM tbRoles";
 
         var roles = await QueryAsync<RoleDto>(sql);
 

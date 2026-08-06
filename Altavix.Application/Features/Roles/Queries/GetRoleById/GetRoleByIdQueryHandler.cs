@@ -17,7 +17,7 @@ public class GetRoleByIdQueryHandler : BaseQueryHandler, IRequestHandler<GetRole
             SELECT 
                 Id, 
                 Name 
-            FROM AspNetRoles 
+            FROM tbRoles 
             WHERE Id = @Id";
 
         return await QueryFirstOrDefaultAsync<RoleVm>(sql, new { request.Id });

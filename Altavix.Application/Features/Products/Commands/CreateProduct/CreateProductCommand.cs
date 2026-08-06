@@ -9,7 +9,6 @@ public class CreateProductCommand : IRequest<Guid>
     public int Price { get; set; }
     public int PriceCoin { get; set; }
     
-    // UserCreatorId is extracted from Token in Controller
     public Guid UserCreatorId { get; set; }
     
     public List<Guid> CategoryIds { get; set; } = new();
