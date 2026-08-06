@@ -1,4 +1,4 @@
-﻿using Altavix.Domain;
+using Altavix.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace Altavix.Application.Interfaces;
@@ -9,6 +9,11 @@ public interface IAltavixDbContext
     DbSet<ProductEntity>  Products { get; }
     DbSet<UserEntity>   Users { get; }
     DbSet<RoleEntity>   Roles { get; } 
+
+    DbSet<OrderEntity> Orders { get; }
+    DbSet<OrderItemEntity> OrderItems { get; }
+    DbSet<DeliveryMethodEntity> DeliveryMethods { get; }
+    DbSet<PaymentMethodEntity> PaymentMethods { get; }
     
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }
