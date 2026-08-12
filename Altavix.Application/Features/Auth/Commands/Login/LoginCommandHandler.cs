@@ -1,3 +1,4 @@
+using Altavix.Domain.Repositories;
 using Altavix.Application.Features.Auth.DTOs;
 using Altavix.Application.Interfaces;
 using Altavix.Application.Models;
@@ -10,13 +11,15 @@ namespace Altavix.Application.Features.Auth.Commands.Login;
 
 public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponseDto<AuthResponseDto>>
 {
+    private readonly IUnitOfWork _unitOfWork;
     private readonly UserManager<UserEntity> _userManager;
     private readonly IJwtProvider _jwtProvider;
 
     public LoginCommandHandler(
         UserManager<UserEntity> userManager,
-        IJwtProvider jwtProvider)
+        IJwtProvider jwtProvider, IUnitOfWork unitOfWork)
     {
+        _unitOfWork = unitOfWork;
         _userManager = userManager;
         _jwtProvider = jwtProvider;
     }
@@ -59,3 +62,5 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponseDto<
         };
     }
 }
+
+

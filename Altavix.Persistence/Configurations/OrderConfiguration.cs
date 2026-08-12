@@ -9,6 +9,8 @@ public class OrderConfiguration : IEntityTypeConfiguration<OrderEntity>
     public void Configure(EntityTypeBuilder<OrderEntity> builder)
     {
         builder.HasKey(o => o.Id);
+        
+        builder.Ignore(o => o.Status);
 
         builder.Property(o => o.ClientName)
             .IsRequired()

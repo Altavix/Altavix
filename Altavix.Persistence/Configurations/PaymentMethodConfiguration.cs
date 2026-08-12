@@ -14,7 +14,7 @@ public class PaymentMethodConfiguration : IEntityTypeConfiguration<PaymentMethod
             .IsRequired()
             .HasMaxLength(150);
 
-        builder.Property(p => p.Description)
-            .HasMaxLength(500);
+        builder.Property(p => p.Type)
+            .IsRequired();
     }
 }

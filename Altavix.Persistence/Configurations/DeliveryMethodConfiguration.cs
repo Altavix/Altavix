@@ -18,6 +18,10 @@ public class DeliveryMethodConfiguration : IEntityTypeConfiguration<DeliveryMeth
             .HasMaxLength(500);
 
         builder.Property(d => d.Price)
-            .HasColumnType("decimal(18,2)");
+            .HasColumnType("decimal(18,2)")
+            .IsRequired();
+
+        builder.Property(d => d.Type)
+            .IsRequired();
     }
 }

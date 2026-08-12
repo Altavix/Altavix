@@ -1,3 +1,4 @@
+using Altavix.Domain.Repositories;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Altavix.Application.Features.Auth.DTOs;
@@ -12,13 +13,15 @@ namespace Altavix.Application.Features.Auth.Commands.Refresh;
 
 public class RefreshCommandHandler : IRequestHandler<RefreshCommand, ApiResponseDto<AuthResponseDto>>
 {
+    private readonly IUnitOfWork _unitOfWork;
     private readonly UserManager<UserEntity> _userManager;
     private readonly IJwtProvider _jwtProvider;
 
     public RefreshCommandHandler(
         UserManager<UserEntity> userManager,
-        IJwtProvider jwtProvider)
+        IJwtProvider jwtProvider, IUnitOfWork unitOfWork)
     {
+        _unitOfWork = unitOfWork;
         _userManager = userManager;
         _jwtProvider = jwtProvider;
     }
@@ -69,3 +72,5 @@ public class RefreshCommandHandler : IRequestHandler<RefreshCommand, ApiResponse
         };
     }
 }
+
+
