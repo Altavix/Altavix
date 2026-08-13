@@ -47,6 +47,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponseDto<
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
         await _userManager.UpdateAsync(user);
 
+
         return new ApiResponseDto<AuthResponseDto>
         {
             Data = new AuthResponseDto
@@ -55,12 +56,12 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponseDto<
                 Token = token,
                 RefreshToken = refreshToken,
                 Role = roles.FirstOrDefault() ?? string.Empty,
-                UserId = user.Id.ToString()
+                UserId = user.Id.ToString(),
+                FirstName = user.FirstName ?? string.Empty,
+                LastName = user.LastName ?? string.Empty
             },
-            Message = "Успішний вхід",
+            Message = "???????? ????",
             Type = ResponseMessageType.Success
         };
     }
 }
-
-

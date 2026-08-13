@@ -18,4 +18,10 @@ public class OrderRepository : BaseRepository<OrderEntity>, IOrderRepository
             .Include(o => o.PaymentMethod)
             .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
     }
+
+    public async Task<OrderEntity?> GetActiveCartForUserAsync(Guid clientId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Orders
+            .FirstOrDefaultAsync(o => o.ClientId == clientId && o.Ordered == null, cancellationToken);
+    }
 }

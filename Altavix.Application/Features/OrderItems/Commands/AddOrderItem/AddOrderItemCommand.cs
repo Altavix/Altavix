@@ -1,8 +1,9 @@
+using Altavix.Application.Models;
 using MediatR;
 
 namespace Altavix.Application.Features.OrderItems.Commands.AddOrderItem;
 
-public class AddOrderItemCommand : IRequest<Guid>
+public class AddOrderItemCommand : IRequest<ApiResponseDto<Guid>>
 {
     public Guid OrderId { get; set; }
     public Guid ProductId { get; set; }

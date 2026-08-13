@@ -38,9 +38,8 @@ public class CheckoutOrderCommandHandler : IRequestHandler<CheckoutOrderCommand,
         order.DeliveryMethodId = request.DeliveryMethodId;
         order.PaymentMethodId = request.PaymentMethodId;
         
-        // Mark as Ordered and Processing
+        // Mark as Ordered
         order.Ordered = DateTime.UtcNow;
-        order.Processing = DateTime.UtcNow;
 
         _orderRepository.Update(order);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
