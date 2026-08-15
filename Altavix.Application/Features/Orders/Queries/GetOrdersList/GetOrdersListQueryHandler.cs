@@ -24,7 +24,7 @@ public class GetOrdersListQueryHandler : BaseQueryHandler, IRequestHandler<GetOr
 
             -- Query 2: Paged Results
             SELECT 
-                Id, Created, Updated, Ordered, 
+                Id, Number, Created, Updated, Ordered, 
                 Paid, Processing, Shipped, Delivered, Cancelled,
                 ClientName, City, 
                 TotalPrice, TotalPriceCoin

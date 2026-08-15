@@ -5,6 +5,7 @@ namespace Altavix.Domain;
 public class OrderEntity
 {
     public Guid Id { get; set; }
+    public long Number { get; set; }
     public DateTime Created { get; set; }
     public DateTime? Updated { get; set; }
 

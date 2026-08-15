@@ -14,7 +14,7 @@ public class GetOrderByIdQueryHandler : BaseQueryHandler, IRequestHandler<GetOrd
     {
         const string sql = @"
             SELECT 
-                o.Id, o.Created, o.Updated, o.Ordered, 
+                o.Id, o.Number, o.Created, o.Updated, o.Ordered, 
                 o.Paid, o.Processing, o.Shipped, o.Delivered, o.Cancelled,
                 o.ClientName, o.ClientMobilePhone, o.ClientEmail,
                 o.City, o.Address, o.Comment,

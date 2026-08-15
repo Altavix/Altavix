@@ -22,6 +22,10 @@ public class AltavixDbContext : IdentityDbContext<UserEntity, RoleEntity, Guid>,
     {
         base.OnModelCreating(modelBuilder);
         
+        modelBuilder.HasSequence<long>("OrderNumbers")
+            .StartsAt(10000)
+            .IncrementsBy(1);
+
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())

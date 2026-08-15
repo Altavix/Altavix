@@ -10,6 +10,13 @@ public class OrderConfiguration : IEntityTypeConfiguration<OrderEntity>
     {
         builder.HasKey(o => o.Id);
         
+        builder.Property(o => o.Number)
+            .HasColumnOrder(1)
+            .HasDefaultValueSql("NEXT VALUE FOR OrderNumbers");
+            
+        builder.HasIndex(o => o.Number)
+            .IsUnique();
+
         builder.Ignore(o => o.Status);
 
         builder.Property(o => o.ClientName)

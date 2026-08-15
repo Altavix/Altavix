@@ -23,6 +23,7 @@ public class OrderItemVm
 public class OrderDetailsVm
 {
     public Guid Id { get; set; }
+    public long Number { get; set; }
     public DateTime Created { get; set; }
     public DateTime? Updated { get; set; }
     public DateTime? Ordered { get; set; }
