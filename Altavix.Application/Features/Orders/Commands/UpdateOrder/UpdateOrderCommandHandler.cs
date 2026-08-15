@@ -3,45 +3,47 @@ using Altavix.Application.Models;
 using Altavix.Domain.Repositories;
 using MediatR;
 
-namespace Altavix.Application.Features.OrderItems.Commands.UpdateOrderItemQuantity;
+namespace Altavix.Application.Features.Orders.Commands.UpdateOrder;
 
-public class UpdateOrderItemQuantityCommandHandler : IRequestHandler<UpdateOrderItemQuantityCommand, ApiResponseDto<bool>>
+public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, ApiResponseDto<bool>>
 {
-    private readonly IUnitOfWork _unitOfWork;
     private readonly IOrderRepository _orderRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public UpdateOrderItemQuantityCommandHandler(IOrderRepository orderRepository, IUnitOfWork unitOfWork)
+    public UpdateOrderCommandHandler(IOrderRepository orderRepository, IUnitOfWork unitOfWork)
     {
-        _unitOfWork = unitOfWork;
         _orderRepository = orderRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<ApiResponseDto<bool>> Handle(UpdateOrderItemQuantityCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponseDto<bool>> Handle(UpdateOrderCommand request, CancellationToken cancellationToken)
     {
         var order = await _orderRepository.GetOrderWithDetailsAsync(request.OrderId, cancellationToken);
+        
         if (order == null)
             return new ApiResponseDto<bool> { Message = $"Order with ID {request.OrderId} was not found.", Type = ResponseMessageType.Error };
 
         if (order.Processing.HasValue || order.Shipped.HasValue || order.Delivered.HasValue || order.Cancelled.HasValue)
             return new ApiResponseDto<bool> { Message = "Замовлення вже в обробці або скасовано. Редагування неможливе.", Type = ResponseMessageType.Error };
 
-        var item = order.Items.FirstOrDefault(i => i.Id == request.OrderItemId);
-        if (item == null)
-            return new ApiResponseDto<bool> { Message = $"Order Item with ID {request.OrderItemId} was not found.", Type = ResponseMessageType.Error };
+        order.ClientName = request.ClientName;
+        order.ClientMobilePhone = request.ClientMobilePhone;
+        order.ClientEmail = request.ClientEmail;
+        order.City = request.City;
+        order.CityRef = request.CityRef;
+        order.Address = request.Address;
+        order.Comment = request.Comment;
+        order.DeliveryMethodId = request.DeliveryMethodId;
+        order.PaymentMethodId = request.PaymentMethodId;
 
-        item.Quantity = request.NewQuantity;
-        
-        // Ensure the order's total price is recalculated
-        order.CalculateTotal();
-
+        _orderRepository.Update(order);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new ApiResponseDto<bool>
         {
             Data = true,
-            Message = "Кількість оновлено",
+            Message = "Дані замовлення успішно оновлено",
             Type = ResponseMessageType.Success
         };
     }
 }
-

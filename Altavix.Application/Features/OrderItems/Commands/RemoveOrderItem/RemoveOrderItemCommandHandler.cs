@@ -22,6 +22,9 @@ public class RemoveOrderItemCommandHandler : IRequestHandler<RemoveOrderItemComm
         if (order == null)
             return new ApiResponseDto<bool> { Message = $"Order with ID {request.OrderId} was not found.", Type = ResponseMessageType.Error };
 
+        if (order.Processing.HasValue || order.Shipped.HasValue || order.Delivered.HasValue || order.Cancelled.HasValue)
+            return new ApiResponseDto<bool> { Message = "Замовлення вже в обробці або скасовано. Редагування неможливе.", Type = ResponseMessageType.Error };
+
         var item = order.Items.FirstOrDefault(i => i.Id == request.OrderItemId);
         if (item == null)
             return new ApiResponseDto<bool> { Message = $"Order Item with ID {request.OrderItemId} was not found.", Type = ResponseMessageType.Error };

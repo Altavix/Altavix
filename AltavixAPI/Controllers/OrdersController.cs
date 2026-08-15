@@ -1,6 +1,8 @@
 using Altavix.Application.Features.Orders.Commands.CreateCart;
 using Altavix.Application.Features.Orders.Commands.CheckoutOrder;
 using Altavix.Application.Features.Orders.Commands.CreateOrder;
+using Altavix.Application.Features.Orders.Commands.CancelOrder;
+using Altavix.Application.Features.Orders.Commands.UpdateOrder;
 using Altavix.Application.Features.Orders.Queries.GetOrderById;
 using Altavix.Application.Features.Orders.Queries.GetOrdersList;
 using MediatR;
@@ -20,17 +22,17 @@ public class OrdersController : ControllerBase
     }
 
     /// <summary>
-    /// Gets a list of orders (supports filtering by date and client).
+    /// Retrieves a paginated list of orders, optionally filtered by a specific ClientId.
     /// </summary>
     [HttpGet]
-    public async Task<IActionResult> GetList([FromQuery] GetOrdersListQuery query)
+    public async Task<IActionResult> GetOrdersList([FromQuery] GetOrdersListQuery query)
     {
         var result = await _mediator.Send(query);
         return Ok(result);
     }
 
     /// <summary>
-    /// Gets detailed information for a specific order by ID.
+    /// Retrieves a specific order by ID.
     /// </summary>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
@@ -45,7 +47,7 @@ public class OrdersController : ControllerBase
     }
 
     /// <summary>
-    /// Creates an empty cart (an order with Ordered = null).
+    /// Creates a new shopping cart for a given client (or a guest if ClientId is null).
     /// </summary>
     [HttpPost("cart")]
     public async Task<IActionResult> CreateCart([FromBody] CreateCartCommand command)
@@ -55,7 +57,7 @@ public class OrdersController : ControllerBase
     }
 
     /// <summary>
-    /// Finalizes the cart into a real order by providing delivery and client details.
+    /// Checks out a cart, turning it into an order.
     /// </summary>
     [HttpPost("checkout")]
     public async Task<IActionResult> Checkout([FromBody] CheckoutOrderCommand command)
@@ -73,5 +75,26 @@ public class OrdersController : ControllerBase
         var result = await _mediator.Send(command);
         return Ok(result);
     }
-}
 
+    /// <summary>
+    /// Cancels an order. Allowed only if not in processing.
+    /// </summary>
+    [HttpPost("{id}/cancel")]
+    public async Task<IActionResult> Cancel(Guid id, [FromBody] CancelOrderCommand command)
+    {
+        command.OrderId = id;
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Updates an order's client details. Allowed only if not in processing.
+    /// </summary>
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateDetails(Guid id, [FromBody] UpdateOrderCommand command)
+    {
+        command.OrderId = id;
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+}
