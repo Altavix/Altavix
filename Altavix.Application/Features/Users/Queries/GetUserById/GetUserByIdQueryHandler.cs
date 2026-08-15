@@ -19,7 +19,9 @@ public class GetUserByIdQueryHandler : BaseQueryHandler, IRequestHandler<GetUser
                 UserName, 
                 Email, 
                 FirstName, 
-                LastName 
+                LastName,
+                MiddleName,
+                PhoneNumber
             FROM tbUsers 
             WHERE Id = @Id";
 

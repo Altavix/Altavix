@@ -5,6 +5,9 @@ using Altavix.Application.Features.Users.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+using Altavix.Application.Features.Users.Commands.UpdateUserProfile;
+using System.Security.Claims;
+
 namespace AltavixAPI.Controllers;
 
 [Authorize]
@@ -24,5 +27,25 @@ public class UserController : BaseController
         var user = await Mediator.Send(new GetUserByIdQuery(id));
         if (user == null) return NotFound();
         return Ok(user);
+    }
+
+    [HttpPut("profile")]
+    public async Task<ActionResult> UpdateProfile([FromBody] UpdateUserProfileCommand command)
+    {
+        try
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userId))
+                return Unauthorized();
+
+            command.UserId = userId;
+            
+            var result = await Mediator.Send(command);
+            return HandleResult(result);
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex);
+        }
     }
 }

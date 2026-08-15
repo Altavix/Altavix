@@ -24,13 +24,23 @@ public class GetOrdersListQueryHandler : BaseQueryHandler, IRequestHandler<GetOr
 
             -- Query 2: Paged Results
             SELECT 
-                Id, Number, Created, Updated, Ordered, 
-                Paid, Processing, Shipped, Delivered, Cancelled,
-                ClientName, City, 
-                TotalPrice, TotalPriceCoin
-            FROM tbOrders
-            {whereClause}
-            ORDER BY Created DESC
+                o.Id, o.Number, o.Created, o.Updated, o.Ordered, 
+                o.Paid, o.Processing, o.Shipped, o.Delivered, o.Cancelled,
+                o.ClientName, o.City, o.Address,
+                pm.Title AS PaymentMethodTitle,
+                o.TotalPrice, o.TotalPriceCoin,
+                COALESCE(SUM(oi.Quantity), 0) AS TotalQuantity
+            FROM tbOrders o
+            LEFT JOIN tbPaymentMethods pm ON o.PaymentMethodId = pm.Id
+            LEFT JOIN tbOrderItems oi ON o.Id = oi.OrderId
+            {whereClause.Replace("ClientId = ", "o.ClientId = ")}
+            GROUP BY 
+                o.Id, o.Number, o.Created, o.Updated, o.Ordered, 
+                o.Paid, o.Processing, o.Shipped, o.Delivered, o.Cancelled,
+                o.ClientName, o.City, o.Address,
+                pm.Title,
+                o.TotalPrice, o.TotalPriceCoin
+            ORDER BY o.Created DESC
             OFFSET @Offset ROWS
             FETCH NEXT @PageSize ROWS ONLY;
         ";

@@ -31,9 +31,13 @@ public class OrderSummaryVm
     
     public string ClientName { get; set; } = string.Empty;
     public string? City { get; set; }
+    public string? Address { get; set; }
+    
+    public string? PaymentMethodTitle { get; set; }
     
     public decimal TotalPrice { get; set; }
     public int TotalPriceCoin { get; set; }
+    public int TotalQuantity { get; set; }
 }
 
 public class PagedOrderResultVm
