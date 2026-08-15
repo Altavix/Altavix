@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Reflection;
 using Altavix.Domain;
 using Altavix.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -6,28 +8,17 @@ namespace Altavix.Persistence.Seeders;
 
 public class MethodsSeeder
 {
-    private static readonly Dictionary<DeliveryMethodType, string> DeliveryTitles = new()
-    {
-        { DeliveryMethodType.Pickup, "Самовивіз" },
-        { DeliveryMethodType.NovaPoshta, "Нова Пошта (відділення)" },
-        { DeliveryMethodType.CourierKyiv, "Кур'єр по Києву" },
-        { DeliveryMethodType.NovaPoshtaCourier, "Нова Пошта (кур'єр)" },
-        { DeliveryMethodType.Ukrposhta, "Укрпошта" },
-        { DeliveryMethodType.CourierDnipro, "Кур'єр по Дніпру" }
-    };
-
-    private static readonly Dictionary<PaymentMethodType, string> PaymentTitles = new()
-    {
-        { PaymentMethodType.CashOnDelivery, "Накладений платіж (при отриманні)" },
-        { PaymentMethodType.OnlineCard, "Оплата картою онлайн" },
-        { PaymentMethodType.CashlessWithoutVAT, "Безготівковий розрахунок (без ПДВ)" },
-        { PaymentMethodType.CryptoUSDT, "Криптовалюта (USDT)" }
-    };
-
     public static void Seed(AltavixDbContext context)
     {
         SeedDeliveryMethods(context);
         SeedPaymentMethods(context);
+    }
+
+    private static string GetDescription(Enum value)
+    {
+        FieldInfo field = value.GetType().GetField(value.ToString());
+        DescriptionAttribute attribute = field?.GetCustomAttribute<DescriptionAttribute>();
+        return attribute == null ? value.ToString() : attribute.Description;
     }
 
     private static void SeedDeliveryMethods(AltavixDbContext context)
@@ -39,7 +30,7 @@ public class MethodsSeeder
         {
             if (!existingDeliveryTypes.Contains(type))
             {
-                var title = DeliveryTitles.ContainsKey(type) ? DeliveryTitles[type] : type.ToString();
+                var title = GetDescription(type);
                 context.DeliveryMethods.Add(new DeliveryMethodEntity
                 {
                     Id = Guid.NewGuid(),
@@ -63,7 +54,7 @@ public class MethodsSeeder
         {
             if (!existingPaymentTypes.Contains(type))
             {
-                var title = PaymentTitles.ContainsKey(type) ? PaymentTitles[type] : type.ToString();
+                var title = GetDescription(type);
                 context.PaymentMethods.Add(new PaymentMethodEntity
                 {
                     Id = Guid.NewGuid(),
