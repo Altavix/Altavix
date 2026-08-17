@@ -58,7 +58,9 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponseDto<
                 Role = roles.FirstOrDefault() ?? string.Empty,
                 UserId = user.Id.ToString(),
                 FirstName = user.FirstName ?? string.Empty,
-                LastName = user.LastName ?? string.Empty
+                LastName = user.LastName ?? string.Empty,
+                MiddleName = user.MiddleName ?? string.Empty,
+                PhoneNumber = user.PhoneNumber ?? string.Empty
             },
             Message = "???????? ????",
             Type = ResponseMessageType.Success

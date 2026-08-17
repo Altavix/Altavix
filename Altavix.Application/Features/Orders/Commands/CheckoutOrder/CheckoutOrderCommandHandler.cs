@@ -1,5 +1,7 @@
 using Altavix.Domain.Repositories;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
+using Altavix.Domain;
 
 namespace Altavix.Application.Features.Orders.Commands.CheckoutOrder;
 
@@ -7,11 +9,13 @@ public class CheckoutOrderCommandHandler : IRequestHandler<CheckoutOrderCommand,
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly UserManager<UserEntity> _userManager;
 
-    public CheckoutOrderCommandHandler(IOrderRepository orderRepository, IUnitOfWork unitOfWork)
+    public CheckoutOrderCommandHandler(IOrderRepository orderRepository, IUnitOfWork unitOfWork, UserManager<UserEntity> userManager)
     {
         _orderRepository = orderRepository;
         _unitOfWork = unitOfWork;
+        _userManager = userManager;
     }
 
     public async Task<bool> Handle(CheckoutOrderCommand request, CancellationToken cancellationToken)
@@ -26,6 +30,28 @@ public class CheckoutOrderCommandHandler : IRequestHandler<CheckoutOrderCommand,
 
         if (order.Items.Count == 0)
             throw new InvalidOperationException("Cannot checkout an empty cart.");
+
+        // Update User Profile if authenticated
+        if (order.ClientId.HasValue)
+        {
+            var user = await _userManager.FindByIdAsync(order.ClientId.Value.ToString());
+            if (user != null)
+            {
+                // Always update Full Name
+                var names = request.ClientName?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+                user.FirstName = names.ElementAtOrDefault(0) ?? "";
+                user.LastName = names.ElementAtOrDefault(1) ?? "";
+                user.MiddleName = names.ElementAtOrDefault(2) ?? "";
+                
+                // Update Phone only if empty
+                if (string.IsNullOrEmpty(user.PhoneNumber) && !string.IsNullOrEmpty(request.ClientMobilePhone))
+                {
+                    user.PhoneNumber = request.ClientMobilePhone;
+                }
+                
+                await _userManager.UpdateAsync(user);
+            }
+        }
 
         // Apply checkout info
         order.ClientName = request.ClientName;
