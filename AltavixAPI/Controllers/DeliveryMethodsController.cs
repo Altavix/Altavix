@@ -28,6 +28,16 @@ public class DeliveryMethodsController : ControllerBase
     }
 
     /// <summary>
+    /// Gets active delivery methods formatted for select dropdowns.
+    /// </summary>
+    [HttpGet("options")]
+    public async Task<IActionResult> GetOptions()
+    {
+        var result = await _mediator.Send(new Altavix.Application.Features.DeliveryMethods.Queries.GetDeliveryMethodOptions.GetDeliveryMethodOptionsQuery());
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Creates a new delivery method.
     /// </summary>
     [HttpPost]

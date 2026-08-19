@@ -21,6 +21,13 @@ public class CategoryController : BaseController
         return Ok(result);
     }
 
+    [HttpGet("options")]
+    public async Task<IActionResult> GetOptions()
+    {
+        var result = await Mediator.Send(new Altavix.Application.Features.Categories.Queries.GetCategoryOptions.GetCategoryOptionsQuery());
+        return Ok(result);
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<CategoryVm>> GetById(Guid id)
     {

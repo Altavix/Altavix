@@ -28,22 +28,13 @@ public class RefreshCommandHandler : IRequestHandler<RefreshCommand, ApiResponse
 
     public async Task<ApiResponseDto<AuthResponseDto>> Handle(RefreshCommand request, CancellationToken cancellationToken)
     {
-        var handler = new JwtSecurityTokenHandler();
-        if (!handler.CanReadToken(request.AccessToken))
+        if (string.IsNullOrEmpty(request.RefreshToken))
         {
-            return new ApiResponseDto<AuthResponseDto> { Message = "Невірний access токен", Type = ResponseMessageType.Error };
+            return new ApiResponseDto<AuthResponseDto> { Message = "Відсутній refresh токен", Type = ResponseMessageType.Error };
         }
 
-        var jwtToken = handler.ReadJwtToken(request.AccessToken);
-        var emailClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Email)?.Value;
-
-        if (string.IsNullOrEmpty(emailClaim))
-        {
-            return new ApiResponseDto<AuthResponseDto> { Message = "Невірні дані у токені", Type = ResponseMessageType.Error };
-        }
-
-        var user = await _userManager.FindByEmailAsync(emailClaim);
-        if (user == null || user.RefreshToken != request.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+        var user = _userManager.Users.FirstOrDefault(u => u.RefreshToken == request.RefreshToken);
+        if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
         {
             return new ApiResponseDto<AuthResponseDto> { Message = "Недійсний або прострочений токен", Type = ResponseMessageType.Error };
         }
@@ -65,7 +56,11 @@ public class RefreshCommandHandler : IRequestHandler<RefreshCommand, ApiResponse
                 Token = newAccessToken,
                 RefreshToken = newRefreshToken,
                 Role = roles.FirstOrDefault() ?? string.Empty,
-                UserId = user.Id.ToString()
+                UserId = user.Id.ToString(),
+                FirstName = user.FirstName ?? string.Empty,
+                LastName = user.LastName ?? string.Empty,
+                MiddleName = user.MiddleName ?? string.Empty,
+                PhoneNumber = user.PhoneNumber ?? string.Empty
             },
             Message = "Токен успішно оновлено",
             Type = ResponseMessageType.Success

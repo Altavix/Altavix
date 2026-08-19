@@ -83,4 +83,35 @@ public class OrderEntity
         TotalPrice += TotalPriceCoin / 100;
         TotalPriceCoin %= 100;
     }
+
+    public void ChangeStatus(OrderStatus newStatus)
+    {
+        var now = DateTime.UtcNow;
+
+        // If cancelled, just set the cancelled date and we are done.
+        if (newStatus == OrderStatus.Cancelled)
+        {
+            if (!Cancelled.HasValue) Cancelled = now;
+            return;
+        }
+
+        // If we are moving to a non-cancelled state, ensure Cancelled is null
+        Cancelled = null;
+
+        // Reset timestamps if we are moving backward
+        if (newStatus < OrderStatus.Delivered) Delivered = null;
+        if (newStatus < OrderStatus.Shipped) Shipped = null;
+        if (newStatus < OrderStatus.Paid) Paid = null; // Sometimes paid is orthogonal, but we'll respect the linear enum order
+        if (newStatus < OrderStatus.Processing) Processing = null;
+        if (newStatus < OrderStatus.Ordered) Ordered = null;
+
+        // Set timestamps if we are moving forward
+        if (newStatus >= OrderStatus.Ordered && !Ordered.HasValue) Ordered = now;
+        if (newStatus >= OrderStatus.Processing && !Processing.HasValue) Processing = now;
+        if (newStatus >= OrderStatus.Paid && !Paid.HasValue) Paid = now;
+        if (newStatus >= OrderStatus.Shipped && !Shipped.HasValue) Shipped = now;
+        if (newStatus >= OrderStatus.Delivered && !Delivered.HasValue) Delivered = now;
+        
+        Updated = now;
+    }
 }

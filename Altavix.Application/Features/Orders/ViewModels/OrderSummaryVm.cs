@@ -34,6 +34,7 @@ public class OrderSummaryVm
     public string? Address { get; set; }
     
     public string? PaymentMethodTitle { get; set; }
+    public string? DeliveryMethodTitle { get; set; }
     
     public decimal TotalPrice { get; set; }
     public int TotalPriceCoin { get; set; }

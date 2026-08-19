@@ -97,4 +97,16 @@ public class OrdersController : ControllerBase
         var result = await _mediator.Send(command);
         return Ok(result);
     }
+
+    /// <summary>
+    /// Updates an order's status.
+    /// </summary>
+    [HttpPut("{id}/status")]
+    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] Altavix.Application.Features.Orders.Commands.UpdateOrderStatus.UpdateOrderStatusCommand command)
+    {
+        command.OrderId = id;
+        var result = await _mediator.Send(command);
+        if (!result) return NotFound();
+        return Ok(result);
+    }
 }

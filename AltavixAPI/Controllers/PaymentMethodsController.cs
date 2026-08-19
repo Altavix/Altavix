@@ -28,6 +28,16 @@ public class PaymentMethodsController : ControllerBase
     }
 
     /// <summary>
+    /// Gets active payment methods formatted for select dropdowns.
+    /// </summary>
+    [HttpGet("options")]
+    public async Task<IActionResult> GetOptions()
+    {
+        var result = await _mediator.Send(new Altavix.Application.Features.PaymentMethods.Queries.GetPaymentMethodOptions.GetPaymentMethodOptionsQuery());
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Creates a new payment method.
     /// </summary>
     [HttpPost]
