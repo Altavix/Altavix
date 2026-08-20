@@ -7,6 +7,7 @@ using Altavix.Application.Features.OrderItems.Commands.UpdateOrderItemQuantity;
 using Altavix.Application.Features.OrderItems.Queries.GetOrderItemsByOrderId;
 using Altavix.Application.Features.OrderItems.Queries.GetOrderItemsByStatus;
 using MediatR;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AltavixAPI.Controllers;
@@ -63,11 +64,35 @@ public class OrderItemsController : ControllerBase
     }
 
     /// <summary>
+    /// Admin override to update quantity of an order item.
+    /// </summary>
+    [HttpPut("admin/update-quantity")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+    public async Task<IActionResult> AdminUpdateQuantity([FromBody] UpdateOrderItemQuantityCommand command)
+    {
+        command.IsAdmin = true;
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Removes an item from an order.
     /// </summary>
     [HttpPost("remove")]
     public async Task<IActionResult> RemoveItem([FromBody] RemoveOrderItemCommand command)
     {
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Admin override to remove an item from an order.
+    /// </summary>
+    [HttpPost("admin/remove")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+    public async Task<IActionResult> AdminRemoveItem([FromBody] RemoveOrderItemCommand command)
+    {
+        command.IsAdmin = true;
         var result = await _mediator.Send(command);
         return Ok(result);
     }

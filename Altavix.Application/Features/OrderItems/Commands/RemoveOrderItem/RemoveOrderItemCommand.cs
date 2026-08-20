@@ -7,4 +7,5 @@ public class RemoveOrderItemCommand : IRequest<ApiResponseDto<bool>>
 {
     public Guid OrderId { get; set; }
     public Guid OrderItemId { get; set; }
+    public bool IsAdmin { get; set; }
 }

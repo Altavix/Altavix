@@ -1,5 +1,6 @@
 using Altavix.Application.Enums;
 using Altavix.Application.Models;
+using Altavix.Domain;
 using Altavix.Domain.Repositories;
 using MediatR;
 
@@ -23,7 +24,8 @@ public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, Api
         if (order == null)
             return new ApiResponseDto<bool> { Message = $"Order with ID {request.OrderId} was not found.", Type = ResponseMessageType.Error };
 
-        if (order.Processing.HasValue || order.Shipped.HasValue || order.Delivered.HasValue || order.Cancelled.HasValue)
+        // Users can edit up to "Ordered" (status 1). Admins can edit up to "Processing" (status 2).
+        if ((!request.IsAdmin && order.Processing.HasValue) || order.Shipped.HasValue || order.Delivered.HasValue || order.Cancelled.HasValue)
             return new ApiResponseDto<bool> { Message = "Замовлення вже в обробці або скасовано. Редагування неможливе.", Type = ResponseMessageType.Error };
 
         order.ClientName = request.ClientName;

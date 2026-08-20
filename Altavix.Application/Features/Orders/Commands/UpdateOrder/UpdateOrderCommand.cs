@@ -15,4 +15,5 @@ public class UpdateOrderCommand : IRequest<ApiResponseDto<bool>>
     public string? Comment { get; set; }
     public Guid? DeliveryMethodId { get; set; }
     public Guid? PaymentMethodId { get; set; }
+    public bool IsAdmin { get; set; }
 }

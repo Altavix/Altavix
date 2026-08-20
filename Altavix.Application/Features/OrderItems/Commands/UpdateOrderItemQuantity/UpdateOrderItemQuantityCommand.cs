@@ -8,4 +8,5 @@ public class UpdateOrderItemQuantityCommand : IRequest<ApiResponseDto<bool>>
     public Guid OrderId { get; set; }
     public Guid OrderItemId { get; set; }
     public int NewQuantity { get; set; }
+    public bool IsAdmin { get; set; }
 }

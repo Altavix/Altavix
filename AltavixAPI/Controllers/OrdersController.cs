@@ -6,6 +6,7 @@ using Altavix.Application.Features.Orders.Commands.UpdateOrder;
 using Altavix.Application.Features.Orders.Queries.GetOrderById;
 using Altavix.Application.Features.Orders.Queries.GetOrdersList;
 using MediatR;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AltavixAPI.Controllers;
@@ -94,6 +95,19 @@ public class OrdersController : ControllerBase
     public async Task<IActionResult> UpdateDetails(Guid id, [FromBody] UpdateOrderCommand command)
     {
         command.OrderId = id;
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Admin override to update an order's client details up to Processing state.
+    /// </summary>
+    [HttpPut("admin/{id}")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+    public async Task<IActionResult> AdminUpdateDetails(Guid id, [FromBody] UpdateOrderCommand command)
+    {
+        command.OrderId = id;
+        command.IsAdmin = true;
         var result = await _mediator.Send(command);
         return Ok(result);
     }
