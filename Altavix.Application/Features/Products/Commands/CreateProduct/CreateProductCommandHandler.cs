@@ -27,18 +27,20 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
     {
         var productId = Guid.NewGuid();
 
+        var categoryIds = request.CategoryIds ?? new List<Guid>();
+        var images = request.Images ?? new List<string>();
+
         var entity = new ProductEntity()
         {
             Id = productId,
-            Title = request.Title,
-            Description = request.Description,
+            Title = request.Title ?? string.Empty,
+            Description = request.Description ?? string.Empty,
             Price = request.Price,
             PriceCoin = request.PriceCoin,
             CreatedAt = DateTime.UtcNow,
-            UserCreator = await _userRepository.GetByIdAsync(request.UserCreatorId),
             UserCreatorId = request.UserCreatorId,
-            Categories = _categoryRepository.Where(c => request.CategoryIds.Contains(c.Id)).ToList(),
-            Images = request.Images.Select(img => new ProductImageEntity 
+            Categories = _categoryRepository.Where(c => categoryIds.Contains(c.Id)).ToList(),
+            Images = images.Select(img => new ProductImageEntity 
             { 
                 Id = Guid.NewGuid(), 
                 ProductId = productId, 
