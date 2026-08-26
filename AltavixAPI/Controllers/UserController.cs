@@ -21,6 +21,15 @@ public class UserController : BaseController
         return Ok(result);
     }
 
+    [HttpGet("search")]
+    public async Task<ActionResult<UsersListVm>> Search([FromQuery] string term)
+    {
+        if (string.IsNullOrWhiteSpace(term)) return BadRequest("Search term is required");
+        var query = new Altavix.Application.Features.Users.Queries.SearchUsersList.SearchUsersListQuery(term);
+        var result = await Mediator.Send(query);
+        return Ok(result);
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<UserVm>> GetById(Guid id)
     {
