@@ -17,13 +17,34 @@ namespace Altavix.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.9")
+                .HasAnnotation("ProductVersion", "9.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.HasSequence("OrderNumbers")
                 .StartsAt(10000L);
+
+            modelBuilder.Entity("Altavix.Domain.BrandEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Enabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("tbBrands", (string)null);
+                });
 
             modelBuilder.Entity("Altavix.Domain.CategoryEntity", b =>
                 {
@@ -42,6 +63,27 @@ namespace Altavix.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("tbCategories", (string)null);
+                });
+
+            modelBuilder.Entity("Altavix.Domain.CharacteristicEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Enabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("tbCharacteristics", (string)null);
                 });
 
             modelBuilder.Entity("Altavix.Domain.DeliveryMethodEntity", b =>
@@ -241,10 +283,39 @@ namespace Altavix.Persistence.Migrations
                     b.ToTable("tbPaymentMethods");
                 });
 
+            modelBuilder.Entity("Altavix.Domain.ProductCharacteristicEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CharacteristicId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CharacteristicId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("tbProductCharacteristics", (string)null);
+                });
+
             modelBuilder.Entity("Altavix.Domain.ProductEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("BrandId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
@@ -256,6 +327,16 @@ namespace Altavix.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
+
+                    b.Property<bool>("Enabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("InStock")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<int>("Price")
                         .HasColumnType("int");
@@ -275,6 +356,8 @@ namespace Altavix.Persistence.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BrandId");
 
                     b.HasIndex("UserCreatorId");
 
@@ -579,13 +662,39 @@ namespace Altavix.Persistence.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("Altavix.Domain.ProductCharacteristicEntity", b =>
+                {
+                    b.HasOne("Altavix.Domain.CharacteristicEntity", "Characteristic")
+                        .WithMany()
+                        .HasForeignKey("CharacteristicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Altavix.Domain.ProductEntity", "Product")
+                        .WithMany("Characteristics")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Characteristic");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("Altavix.Domain.ProductEntity", b =>
                 {
+                    b.HasOne("Altavix.Domain.BrandEntity", "Brand")
+                        .WithMany("Products")
+                        .HasForeignKey("BrandId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Altavix.Domain.UserEntity", "UserCreator")
                         .WithMany()
                         .HasForeignKey("UserCreatorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Brand");
 
                     b.Navigation("UserCreator");
                 });
@@ -667,6 +776,11 @@ namespace Altavix.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Altavix.Domain.BrandEntity", b =>
+                {
+                    b.Navigation("Products");
+                });
+
             modelBuilder.Entity("Altavix.Domain.OrderEntity", b =>
                 {
                     b.Navigation("Items");
@@ -674,6 +788,8 @@ namespace Altavix.Persistence.Migrations
 
             modelBuilder.Entity("Altavix.Domain.ProductEntity", b =>
                 {
+                    b.Navigation("Characteristics");
+
                     b.Navigation("Images");
                 });
 #pragma warning restore 612, 618

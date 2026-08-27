@@ -29,6 +29,7 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
 
         var categoryIds = request.CategoryIds ?? new List<Guid>();
         var images = request.Images ?? new List<string>();
+        var characteristics = request.Characteristics ?? new List<Altavix.Application.Features.Products.DTOs.ProductCharacteristicDto>();
 
         var entity = new ProductEntity()
         {
@@ -39,12 +40,22 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
             PriceCoin = request.PriceCoin,
             CreatedAt = DateTime.UtcNow,
             UserCreatorId = request.UserCreatorId,
+            BrandId = request.BrandId,
+            InStock = request.InStock,
+            Enabled = request.Enabled,
             Categories = _categoryRepository.Where(c => categoryIds.Contains(c.Id)).ToList(),
             Images = images.Select(img => new ProductImageEntity 
             { 
                 Id = Guid.NewGuid(), 
                 ProductId = productId, 
                 ImageContent = img 
+            }).ToList(),
+            Characteristics = characteristics.Select(c => new ProductCharacteristicEntity
+            {
+                Id = Guid.NewGuid(),
+                ProductId = productId,
+                CharacteristicId = c.CharacteristicId,
+                Value = c.Value ?? string.Empty
             }).ToList()
         };
         

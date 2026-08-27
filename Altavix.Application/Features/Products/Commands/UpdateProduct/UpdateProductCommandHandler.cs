@@ -33,8 +33,10 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
         entity.Price = request.Price;
         entity.PriceCoin = request.PriceCoin;
         entity.UpdatedAt = DateTime.UtcNow;
+        entity.BrandId = request.BrandId;
+        entity.InStock = request.InStock;
+        entity.Enabled = request.Enabled;
 
-        // Update Categories safely
         var existingCategoryIds = entity.Categories.Select(c => c.Id).ToList();
         
         var categoriesToRemove = entity.Categories.Where(c => !request.CategoryIds.Contains(c.Id)).ToList();
@@ -54,17 +56,14 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             }
         }
 
-        // Update Images safely using standard tracking collection
         var existingImages = entity.Images.ToList();
         
-        // Remove images that are no longer present
         var imagesToRemove = existingImages.Where(i => !request.Images.Contains(i.ImageContent)).ToList();
         foreach (var img in imagesToRemove)
         {
             entity.Images.Remove(img);
         }
 
-        // Add new images
         var newImageContents = request.Images.Where(img => !existingImages.Any(e => e.ImageContent == img)).ToList();
         foreach (var imgContent in newImageContents)
         {
@@ -74,6 +73,34 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
                 ProductId = entity.Id,
                 ImageContent = imgContent
             });
+        }
+        
+        var existingCharacteristics = entity.Characteristics.ToList();
+        
+        var requestedCharacteristicIds = request.Characteristics.Select(c => c.CharacteristicId).ToList();
+        var charsToRemove = existingCharacteristics.Where(c => !requestedCharacteristicIds.Contains(c.CharacteristicId)).ToList();
+        foreach (var ch in charsToRemove)
+        {
+            entity.Characteristics.Remove(ch);
+        }
+
+        foreach (var reqChar in request.Characteristics)
+        {
+            var existing = entity.Characteristics.FirstOrDefault(c => c.CharacteristicId == reqChar.CharacteristicId);
+            if (existing != null)
+            {
+                existing.Value = reqChar.Value ?? string.Empty;
+            }
+            else
+            {
+                entity.Characteristics.Add(new ProductCharacteristicEntity
+                {
+                    Id = Guid.NewGuid(),
+                    ProductId = entity.Id,
+                    CharacteristicId = reqChar.CharacteristicId,
+                    Value = reqChar.Value ?? string.Empty
+                });
+            }
         }
         
         _productRepository.Update(entity);

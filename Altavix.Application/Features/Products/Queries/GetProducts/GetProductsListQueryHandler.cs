@@ -20,9 +20,11 @@ public class GetProductsListQueryHandler : BaseQueryHandler, IRequestHandler<Get
             SELECT COUNT(1) FROM tbProducts;
 
             SELECT 
-                Id, Title, Description, Price, PriceCoin
-            FROM tbProducts
-            ORDER BY CreatedAt DESC
+                p.Id, p.Title, p.Description, p.Price, p.PriceCoin,
+                p.BrandId, p.InStock, p.Enabled, b.Name AS BrandName
+            FROM tbProducts p
+            LEFT JOIN tbBrands b ON p.BrandId = b.Id
+            ORDER BY p.CreatedAt DESC
             OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
         ";
 
@@ -40,17 +42,28 @@ public class GetProductsListQueryHandler : BaseQueryHandler, IRequestHandler<Get
             const string relatedSql = @"
                 SELECT ProductId, ImageContent FROM tbProductImages WHERE ProductId IN @ProductIds;
                 SELECT ProductEntityId, CategoriesId FROM tbCategoryProduct WHERE ProductEntityId IN @ProductIds;
+                SELECT pc.ProductId, pc.CharacteristicId, pc.Value, c.Name 
+                FROM tbProductCharacteristics pc
+                INNER JOIN tbCharacteristics c ON pc.CharacteristicId = c.Id
+                WHERE pc.ProductId IN @ProductIds;
             ";
 
             await QueryMultipleAsync(relatedSql, async reader =>
             {
                 var images = (await reader.ReadAsync<dynamic>()).ToList();
                 var categories = (await reader.ReadAsync<dynamic>()).ToList();
+                var characteristics = (await reader.ReadAsync<dynamic>()).ToList();
 
                 foreach (var product in products)
                 {
                     product.Images = images.Where(i => i.ProductId == product.Id).Select(i => (string)i.ImageContent).ToList();
                     product.CategoryIds = categories.Where(c => c.ProductEntityId == product.Id).Select(c => (Guid)c.CategoriesId).ToList();
+                    product.Characteristics = characteristics.Where(c => c.ProductId == product.Id).Select(c => new Altavix.Application.Features.Products.DTOs.ProductCharacteristicDto
+                    {
+                        CharacteristicId = (Guid)c.CharacteristicId,
+                        Name = (string)c.Name,
+                        Value = (string)c.Value
+                    }).ToList();
                 }
                 return true;
             }, new { ProductIds = productIds });

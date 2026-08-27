@@ -1,3 +1,5 @@
+using Altavix.Application.Features.Products.DTOs;
+
 namespace Altavix.Application.Features.Products.ViewModels;
 
 public class ProductVm
@@ -9,4 +11,10 @@ public class ProductVm
     public int PriceCoin { get; set; }
     public List<Guid> CategoryIds { get; set; } = new();
     public List<string> Images { get; set; } = new();
+
+    public Guid? BrandId { get; set; }
+    public string? BrandName { get; set; }
+    public bool InStock { get; set; }
+    public bool Enabled { get; set; }
+    public List<ProductCharacteristicDto> Characteristics { get; set; } = new();
 }

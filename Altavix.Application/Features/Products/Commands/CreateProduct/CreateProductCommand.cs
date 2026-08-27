@@ -1,3 +1,4 @@
+using Altavix.Application.Features.Products.DTOs;
 using MediatR;
 
 namespace Altavix.Application.Features.Products.Commands.CreateProduct;
@@ -13,4 +14,9 @@ public class CreateProductCommand : IRequest<Guid>
     
     public List<Guid> CategoryIds { get; set; } = new();
     public List<string> Images { get; set; } = new();
+    
+    public Guid? BrandId { get; set; }
+    public bool InStock { get; set; } = true;
+    public bool Enabled { get; set; } = true;
+    public List<ProductCharacteristicDto> Characteristics { get; set; } = new();
 }
