@@ -14,6 +14,9 @@ public interface IAltavixDbContext
     DbSet<OrderItemEntity> OrderItems { get; }
     DbSet<DeliveryMethodEntity> DeliveryMethods { get; }
     DbSet<PaymentMethodEntity> PaymentMethods { get; }
+    DbSet<BrandEntity> Brands { get; }
+    DbSet<CharacteristicEntity> Characteristics { get; }
+    DbSet<ProductCharacteristicEntity> ProductCharacteristics { get; }
     
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

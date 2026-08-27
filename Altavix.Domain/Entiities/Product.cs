@@ -12,6 +12,14 @@ public class ProductEntity
     public List<CategoryEntity> Categories { get; set; } = new();
     public List<ProductImageEntity> Images { get; set; } = new();
     
+    public bool InStock { get; set; } = true;
+    public bool Enabled { get; set; } = true;
+    
+    public Guid? BrandId { get; set; }
+    public BrandEntity Brand { get; set; }
+    
+    public List<ProductCharacteristicEntity> Characteristics { get; set; } = new();
+    
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }

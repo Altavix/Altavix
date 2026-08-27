@@ -15,6 +15,9 @@ public class AltavixDbContext : IdentityDbContext<UserEntity, RoleEntity, Guid>,
     public DbSet<OrderItemEntity> OrderItems { get; set; }
     public DbSet<DeliveryMethodEntity> DeliveryMethods { get; set; }
     public DbSet<PaymentMethodEntity> PaymentMethods { get; set; }
+    public DbSet<BrandEntity> Brands { get; set; }
+    public DbSet<CharacteristicEntity> Characteristics { get; set; }
+    public DbSet<ProductCharacteristicEntity> ProductCharacteristics { get; set; }
 
     public AltavixDbContext(DbContextOptions<AltavixDbContext> options) : base(options) {}
 

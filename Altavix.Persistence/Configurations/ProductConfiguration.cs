@@ -25,6 +25,14 @@ public class ProductConfiguration : IEntityTypeConfiguration<ProductEntity>
         builder.Property(p => p.PriceCoin)
             .IsRequired();
 
+        builder.Property(p => p.InStock)
+            .IsRequired()
+            .HasDefaultValue(true);
+
+        builder.Property(p => p.Enabled)
+            .IsRequired()
+            .HasDefaultValue(true);
+
         builder.Property(p => p.CreatedAt)
             .IsRequired()
             .HasDefaultValueSql("GETUTCDATE()");
