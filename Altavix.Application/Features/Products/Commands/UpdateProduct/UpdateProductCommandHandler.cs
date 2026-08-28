@@ -69,7 +69,6 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
         {
             entity.Images.Add(new ProductImageEntity 
             {
-                Id = Guid.NewGuid(),
                 ProductId = entity.Id,
                 ImageContent = imgContent
             });
@@ -95,7 +94,6 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             {
                 entity.Characteristics.Add(new ProductCharacteristicEntity
                 {
-                    Id = Guid.NewGuid(),
                     ProductId = entity.Id,
                     CharacteristicId = reqChar.CharacteristicId,
                     Value = reqChar.Value ?? string.Empty
@@ -103,16 +101,14 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             }
         }
         
-        _productRepository.Update(entity);
-
         try 
         {
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
         catch (DbUpdateConcurrencyException ex)
         {
-            var failingEntities = string.Join(", ", ex.Entries.Select(e => e.Entity.GetType().Name));
-            throw new Exception($"Concurrency exception on entities: {failingEntities}. Details: {ex.Message}");
+            var details = string.Join(", ", ex.Entries.Select(e => $"{e.Entity.GetType().Name} ({e.State})"));
+            throw new Exception($"Concurrency exception on entities: {details}. Details: {ex.Message}");
         }
 
         return Unit.Value;
