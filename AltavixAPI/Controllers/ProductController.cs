@@ -25,7 +25,8 @@ public class ProductController : BaseController
         [FromQuery] decimal? maxPrice = null,
         [FromQuery] Guid[]? brandIds = null,
         [FromQuery] Guid[]? categoryIds = null,
-        [FromQuery] string? characteristicsJson = null)
+        [FromQuery] string? characteristicsJson = null,
+        [FromQuery] string? searchTerm = null)
     {
         var dict = new Dictionary<Guid, string[]>();
         if (!string.IsNullOrEmpty(characteristicsJson))
@@ -33,7 +34,10 @@ public class ProductController : BaseController
             try { dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<Guid, string[]>>(characteristicsJson) ?? dict; } catch { }
         }
 
-        var query = new GetProductsListQuery(page, pageSize, minPrice, maxPrice, brandIds, categoryIds, dict);
+        var query = new GetProductsListQuery(page, pageSize, minPrice, maxPrice, brandIds, categoryIds, dict)
+        {
+            SearchTerm = searchTerm
+        };
         var result = await Mediator.Send(query);
         return Ok(new ApiResponseDto<PaginatedList<ProductVm>> { Data = result, Message = "Success", Type = ResponseMessageType.Success });
     }
@@ -55,7 +59,8 @@ public class ProductController : BaseController
         [FromQuery] decimal? maxPrice = null,
         [FromQuery] Guid[]? brandIds = null,
         [FromQuery] Guid[]? categoryIds = null,
-        [FromQuery] string? characteristicsJson = null)
+        [FromQuery] string? characteristicsJson = null,
+        [FromQuery] string? searchTerm = null)
     {
         var dict = new Dictionary<Guid, string[]>();
         if (!string.IsNullOrEmpty(characteristicsJson))
@@ -69,7 +74,8 @@ public class ProductController : BaseController
             MaxPrice = maxPrice,
             BrandIds = brandIds,
             CategoryIds = categoryIds,
-            CharacteristicsFilters = dict
+            CharacteristicsFilters = dict,
+            SearchTerm = searchTerm
         });
         return Ok(new ApiResponseDto<PaginatedList<AdminProductVm>> { Data = result, Message = "Success", Type = ResponseMessageType.Success });
     }

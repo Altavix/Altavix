@@ -20,8 +20,6 @@ public class ProductRepository : BaseRepository<ProductEntity>, IProductReposito
             
         if (product != null)
         {
-            // Use ToList() instead of ToListAsync() to avoid Microsoft.Data.SqlClient internal CLR crash
-            // when reading massive LOB (nvarchar(max)) columns with async MARS connections.
             product.Images = _context.Set<ProductImageEntity>()
                 .Where(i => i.ProductId == id)
                 .ToList();

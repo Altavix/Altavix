@@ -13,4 +13,7 @@ public record GetProductsListQuery(
     Guid[]? BrandIds = null,
     Guid[]? CategoryIds = null,
     Dictionary<Guid, string[]>? CharacteristicsFilters = null
-) : IRequest<PaginatedList<ProductVm>>;
+) : IRequest<PaginatedList<ProductVm>>
+{
+    public string? SearchTerm { get; set; }
+}

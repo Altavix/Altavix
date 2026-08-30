@@ -63,20 +63,49 @@ public class GetAdminProductsListQueryHandler : BaseQueryHandler, IRequestHandle
             }
         }
 
+        var scoreColumn = "";
+        var orderBy = "ORDER BY p.CreatedAt DESC";
+
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            var searchTerm = $"%{request.SearchTerm}%";
+            parameters.Add("SearchTerm", searchTerm);
+            
+            conditions.Add(@"(
+                p.Title LIKE @SearchTerm OR 
+                p.Description LIKE @SearchTerm OR
+                b.Name LIKE @SearchTerm OR
+                EXISTS (SELECT 1 FROM tbCategoryProduct cp JOIN tbCategories c ON cp.CategoriesId = c.Id WHERE cp.ProductEntityId = p.Id AND c.Title LIKE @SearchTerm) OR
+                EXISTS (SELECT 1 FROM tbProductCharacteristics pc JOIN tbCharacteristics ch ON pc.CharacteristicId = ch.Id WHERE pc.ProductId = p.Id AND (ch.Name LIKE @SearchTerm OR pc.Value LIKE @SearchTerm))
+            )");
+
+            scoreColumn = @",
+            (
+                (CASE WHEN p.Title LIKE @SearchTerm THEN 10000 ELSE 0 END) +
+                (CASE WHEN p.Description LIKE @SearchTerm THEN 1000 ELSE 0 END) +
+                (CASE WHEN b.Name LIKE @SearchTerm THEN 100 ELSE 0 END) +
+                (CASE WHEN EXISTS (SELECT 1 FROM tbCategoryProduct cp JOIN tbCategories c ON cp.CategoriesId = c.Id WHERE cp.ProductEntityId = p.Id AND c.Title LIKE @SearchTerm) THEN 10 ELSE 0 END) +
+                (CASE WHEN EXISTS (SELECT 1 FROM tbProductCharacteristics pc JOIN tbCharacteristics ch ON pc.CharacteristicId = ch.Id WHERE pc.ProductId = p.Id AND (ch.Name LIKE @SearchTerm OR pc.Value LIKE @SearchTerm)) THEN 1 ELSE 0 END)
+            ) AS SearchScore";
+            
+            orderBy = "ORDER BY SearchScore DESC, p.CreatedAt DESC";
+        }
+
         var whereSql = "WHERE " + string.Join(" AND ", conditions);
 
         var sql = $@"
             DECLARE @Offset INT = (@PageNumber - 1) * @PageSize;
 
-            SELECT COUNT(1) FROM tbProducts p {whereSql};
+            SELECT COUNT(1) FROM tbProducts p LEFT JOIN tbBrands b ON p.BrandId = b.Id {whereSql};
 
             SELECT 
                 p.Id, p.Title, p.Description, p.Price, p.PriceCoin,
                 p.BrandId, p.InStock, p.Enabled, b.Name AS BrandName
+                {scoreColumn}
             FROM tbProducts p
             LEFT JOIN tbBrands b ON p.BrandId = b.Id
             {whereSql}
-            ORDER BY p.CreatedAt DESC
+            {orderBy}
             OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
         ";
 
@@ -99,7 +128,6 @@ public class GetAdminProductsListQueryHandler : BaseQueryHandler, IRequestHandle
                 WHERE pc.ProductId IN @ProductIds;
             ";
 
-            // Execute Image query completely separately to avoid MARS internal CLR crash
             var images = (await QueryAsync<dynamic>(
                 "SELECT ProductId, ImageContent FROM tbProductImages WHERE ProductId IN @ProductIds", 
                 new { ProductIds = productIds })).ToList();

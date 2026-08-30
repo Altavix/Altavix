@@ -13,10 +13,12 @@ public class GetAdminProductsListQuery : IRequest<PaginatedList<AdminProductVm>>
     public Guid[]? BrandIds { get; set; }
     public Guid[]? CategoryIds { get; set; }
     public Dictionary<Guid, string[]>? CharacteristicsFilters { get; set; }
+    public string? SearchTerm { get; set; }
 
-    public GetAdminProductsListQuery(int pageNumber, int pageSize)
+    public GetAdminProductsListQuery(int pageNumber, int pageSize, string? searchTerm = null)
     {
         PageNumber = pageNumber;
         PageSize = pageSize;
+        SearchTerm = searchTerm;
     }
 }
