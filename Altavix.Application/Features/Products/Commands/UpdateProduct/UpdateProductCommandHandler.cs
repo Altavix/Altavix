@@ -23,6 +23,7 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
 
     public async Task<Unit> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
+        
         var entity = await _productRepository.GetProductWithDetailsAsync(request.Id, cancellationToken);
 
         if (entity == null)
@@ -56,22 +57,27 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             }
         }
 
-        var existingImages = entity.Images.ToList();
-        
-        var imagesToRemove = existingImages.Where(i => !request.Images.Contains(i.ImageContent)).ToList();
-        foreach (var img in imagesToRemove)
+        if (request.Images != null)
         {
-            entity.Images.Remove(img);
-        }
-
-        var newImageContents = request.Images.Where(img => !existingImages.Any(e => e.ImageContent == img)).ToList();
-        foreach (var imgContent in newImageContents)
-        {
-            entity.Images.Add(new ProductImageEntity 
+            var existingImages = entity.Images.ToList();
+            var requestImagesSet = new HashSet<string>(request.Images);
+            
+            var imagesToRemove = existingImages.Where(i => !requestImagesSet.Contains(i.ImageContent)).ToList();
+            foreach (var img in imagesToRemove)
             {
-                ProductId = entity.Id,
-                ImageContent = imgContent
-            });
+                entity.Images.Remove(img);
+            }
+
+            var existingImagesSet = new HashSet<string>(existingImages.Select(e => e.ImageContent));
+            var newImageContents = request.Images.Where(img => !existingImagesSet.Contains(img)).ToList();
+            foreach (var imgContent in newImageContents)
+            {
+                entity.Images.Add(new ProductImageEntity 
+                {
+                    ProductId = entity.Id,
+                    ImageContent = imgContent
+                });
+            }
         }
         
         var existingCharacteristics = entity.Characteristics.ToList();

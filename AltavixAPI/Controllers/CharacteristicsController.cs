@@ -1,4 +1,4 @@
-﻿using Altavix.Application.Features.Characteristics.Commands.CreateCharacteristic;
+using Altavix.Application.Features.Characteristics.Commands.CreateCharacteristic;
 using Altavix.Application.Features.Characteristics.Commands.DeleteCharacteristic;
 using Altavix.Application.Features.Characteristics.Commands.UpdateCharacteristic;
 using Altavix.Application.Features.Characteristics.DTOs;
@@ -31,7 +31,27 @@ public class CharacteristicsController : BaseController
     }
 
     [AllowAnonymous]
-    [HttpGet("{id}")]
+    [HttpGet("filters")]
+    public async Task<ActionResult<ApiResponseDto<List<Altavix.Application.Features.Characteristics.Queries.GetCharacteristicFilters.CharacteristicFilterDto>>>> GetFilters()
+    {
+        try
+        {
+            var filters = await Mediator.Send(new Altavix.Application.Features.Characteristics.Queries.GetCharacteristicFilters.GetCharacteristicFiltersQuery());
+            return Ok(new ApiResponseDto<List<Altavix.Application.Features.Characteristics.Queries.GetCharacteristicFilters.CharacteristicFilterDto>> 
+            { 
+                Data = filters, 
+                Message = "Success", 
+                Type = ResponseMessageType.Success 
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponseDto<List<Altavix.Application.Features.Characteristics.Queries.GetCharacteristicFilters.CharacteristicFilterDto>> { Message = ex.Message, Type = ResponseMessageType.Error });
+        }
+    }
+
+    [AllowAnonymous]
+    [HttpGet("{id:guid}")]
     public async Task<ActionResult<ApiResponseDto<CharacteristicDto>>> Get(Guid id)
     {
         try
@@ -62,7 +82,7 @@ public class CharacteristicsController : BaseController
     }
 
     [Authorize(Roles = "Admin")]
-    [HttpPut("{id}")]
+    [HttpPut("{id:guid}")]
     public async Task<ActionResult<ApiResponseDto<bool>>> Update(Guid id, [FromBody] UpdateCharacteristicCommand command)
     {
         if (id != command.Id) return BadRequest(new ApiResponseDto<bool> { Message = "ID mismatch", Type = ResponseMessageType.Error });
@@ -79,7 +99,7 @@ public class CharacteristicsController : BaseController
     }
 
     [Authorize(Roles = "Admin")]
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:guid}")]
     public async Task<ActionResult<ApiResponseDto<bool>>> Delete(Guid id)
     {
         try

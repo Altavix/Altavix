@@ -11,7 +11,7 @@ public class UpdateProductCommand : IRequest<Unit>
     public int Price { get; set; }
     public int PriceCoin { get; set; }
     public List<Guid> CategoryIds { get; set; } = new();
-    public List<string> Images { get; set; } = new();
+    public List<string>? Images { get; set; }
     
     public Guid? BrandId { get; set; }
     public bool InStock { get; set; }

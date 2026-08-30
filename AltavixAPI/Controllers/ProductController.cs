@@ -17,19 +17,60 @@ namespace AltavixAPI.Controllers;
 public class ProductController : BaseController
 {
     [HttpGet]
-    public async Task<ActionResult<ApiResponseDto<PaginatedList<ProductVm>>>> Get([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    [AllowAnonymous]
+    public async Task<ActionResult<ApiResponseDto<PaginatedList<ProductVm>>>> Get(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 8,
+        [FromQuery] decimal? minPrice = null,
+        [FromQuery] decimal? maxPrice = null,
+        [FromQuery] Guid[]? brandIds = null,
+        [FromQuery] Guid[]? categoryIds = null,
+        [FromQuery] string? characteristicsJson = null)
     {
-        var query = new GetProductsListQuery(page, pageSize);
+        var dict = new Dictionary<Guid, string[]>();
+        if (!string.IsNullOrEmpty(characteristicsJson))
+        {
+            try { dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<Guid, string[]>>(characteristicsJson) ?? dict; } catch { }
+        }
+
+        var query = new GetProductsListQuery(page, pageSize, minPrice, maxPrice, brandIds, categoryIds, dict);
         var result = await Mediator.Send(query);
         return Ok(new ApiResponseDto<PaginatedList<ProductVm>> { Data = result, Message = "Success", Type = ResponseMessageType.Success });
     }
 
+    [HttpGet("max-price")]
+    [AllowAnonymous]
+    public async Task<ActionResult<ApiResponseDto<decimal>>> GetMaxPrice()
+    {
+        var result = await Mediator.Send(new Altavix.Application.Features.Products.Queries.GetMaxPrice.GetMaxPriceQuery());
+        return Ok(new ApiResponseDto<decimal> { Data = result, Message = "Success", Type = ResponseMessageType.Success });
+    }
+
     [HttpGet("admin")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponseDto<PaginatedList<AdminProductVm>>>> GetAdmin([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    public async Task<ActionResult<ApiResponseDto<PaginatedList<AdminProductVm>>>> GetAdmin(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] decimal? minPrice = null,
+        [FromQuery] decimal? maxPrice = null,
+        [FromQuery] Guid[]? brandIds = null,
+        [FromQuery] Guid[]? categoryIds = null,
+        [FromQuery] string? characteristicsJson = null)
     {
-        var query = new GetAdminProductsListQuery(page, pageSize);
-        var result = await Mediator.Send(query);
+        var dict = new Dictionary<Guid, string[]>();
+        if (!string.IsNullOrEmpty(characteristicsJson))
+        {
+            try { dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<Guid, string[]>>(characteristicsJson) ?? dict; } catch { }
+        }
+
+        var result = await Mediator.Send(new GetAdminProductsListQuery(pageNumber, pageSize)
+        {
+            MinPrice = minPrice,
+            MaxPrice = maxPrice,
+            BrandIds = brandIds,
+            CategoryIds = categoryIds,
+            CharacteristicsFilters = dict
+        });
         return Ok(new ApiResponseDto<PaginatedList<AdminProductVm>> { Data = result, Message = "Success", Type = ResponseMessageType.Success });
     }
 

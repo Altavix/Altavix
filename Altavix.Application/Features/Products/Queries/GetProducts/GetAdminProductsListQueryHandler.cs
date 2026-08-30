@@ -14,16 +14,68 @@ public class GetAdminProductsListQueryHandler : BaseQueryHandler, IRequestHandle
 
     public async Task<PaginatedList<AdminProductVm>> Handle(GetAdminProductsListQuery request, CancellationToken cancellationToken)
     {
-        const string sql = @"
+        var conditions = new List<string> { "1=1" };
+        var parameters = new DynamicParameters();
+
+        parameters.Add("PageNumber", request.PageNumber);
+        parameters.Add("PageSize", request.PageSize);
+
+        if (request.MinPrice.HasValue)
+        {
+            conditions.Add("p.Price >= @MinPrice");
+            parameters.Add("MinPrice", request.MinPrice);
+        }
+        if (request.MaxPrice.HasValue)
+        {
+            conditions.Add("p.Price <= @MaxPrice");
+            parameters.Add("MaxPrice", request.MaxPrice);
+        }
+        if (request.BrandIds != null && request.BrandIds.Any())
+        {
+            conditions.Add("p.BrandId IN @BrandIds");
+            parameters.Add("BrandIds", request.BrandIds);
+        }
+        if (request.CategoryIds != null && request.CategoryIds.Any())
+        {
+            conditions.Add("(SELECT COUNT(1) FROM tbCategoryProduct cp WHERE cp.ProductEntityId = p.Id AND cp.CategoriesId IN @CategoryIds) = @CategoryIdsCount");
+            parameters.Add("CategoryIds", request.CategoryIds);
+            parameters.Add("CategoryIdsCount", request.CategoryIds.Length);
+        }
+
+        if (request.CharacteristicsFilters != null && request.CharacteristicsFilters.Any())
+        {
+            int charIndex = 0;
+            foreach (var kvp in request.CharacteristicsFilters)
+            {
+                if (kvp.Value == null || !kvp.Value.Any()) continue;
+                
+                var charIdParam = $"CharId_{charIndex}";
+                var charValuesParam = $"CharValues_{charIndex}";
+                
+                conditions.Add($@"p.Id IN (
+                    SELECT pc.ProductId FROM tbProductCharacteristics pc 
+                    WHERE pc.CharacteristicId = @{charIdParam} AND pc.Value IN @{charValuesParam}
+                )");
+                
+                parameters.Add(charIdParam, kvp.Key);
+                parameters.Add(charValuesParam, kvp.Value);
+                charIndex++;
+            }
+        }
+
+        var whereSql = "WHERE " + string.Join(" AND ", conditions);
+
+        var sql = $@"
             DECLARE @Offset INT = (@PageNumber - 1) * @PageSize;
 
-            SELECT COUNT(1) FROM tbProducts;
+            SELECT COUNT(1) FROM tbProducts p {whereSql};
 
             SELECT 
-                p.Id, p.Title, p.Description, p.Price, p.PriceCoin, p.CreatedAt, p.UpdatedAt, p.UserCreatorId,
+                p.Id, p.Title, p.Description, p.Price, p.PriceCoin,
                 p.BrandId, p.InStock, p.Enabled, b.Name AS BrandName
             FROM tbProducts p
             LEFT JOIN tbBrands b ON p.BrandId = b.Id
+            {whereSql}
             ORDER BY p.CreatedAt DESC
             OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
         ";
@@ -33,14 +85,13 @@ public class GetAdminProductsListQueryHandler : BaseQueryHandler, IRequestHandle
             var count = await reader.ReadSingleAsync<int>();
             var prods = (await reader.ReadAsync<AdminProductVm>()).ToList();
             return (count, prods);
-        }, new { request.PageNumber, request.PageSize });
+        }, parameters);
 
         if (products.Any())
         {
             var productIds = products.Select(p => p.Id).ToArray();
             
             const string relatedSql = @"
-                SELECT ProductId, ImageContent FROM tbProductImages WHERE ProductId IN @ProductIds;
                 SELECT ProductEntityId, CategoriesId FROM tbCategoryProduct WHERE ProductEntityId IN @ProductIds;
                 SELECT pc.ProductId, pc.CharacteristicId, pc.Value, c.Name 
                 FROM tbProductCharacteristics pc
@@ -48,9 +99,13 @@ public class GetAdminProductsListQueryHandler : BaseQueryHandler, IRequestHandle
                 WHERE pc.ProductId IN @ProductIds;
             ";
 
+            // Execute Image query completely separately to avoid MARS internal CLR crash
+            var images = (await QueryAsync<dynamic>(
+                "SELECT ProductId, ImageContent FROM tbProductImages WHERE ProductId IN @ProductIds", 
+                new { ProductIds = productIds })).ToList();
+
             await QueryMultipleAsync(relatedSql, async reader =>
             {
-                var images = (await reader.ReadAsync<dynamic>()).ToList();
                 var categories = (await reader.ReadAsync<dynamic>()).ToList();
                 var characteristics = (await reader.ReadAsync<dynamic>()).ToList();
 

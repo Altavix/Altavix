@@ -41,8 +41,8 @@ public class AuthController : BaseController
         var refreshOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = true, // true required for SameSite=None
-            SameSite = SameSiteMode.None,
+            Secure = true, 
+            SameSite = SameSiteMode.Lax,
             Expires = DateTime.UtcNow.AddDays(7)
         };
         Response.Cookies.Append("refreshToken", refreshToken, refreshOptions);
@@ -51,8 +51,8 @@ public class AuthController : BaseController
         {
             HttpOnly = true,
             Secure = true,
-            SameSite = SameSiteMode.None,
-            Expires = DateTime.UtcNow.AddMinutes(60) // Should match JWT config
+            SameSite = SameSiteMode.Lax,
+            Expires = DateTime.UtcNow.AddMinutes(60)
         };
         Response.Cookies.Append("accessToken", accessToken, accessOptions);
     }
@@ -105,8 +105,8 @@ public class AuthController : BaseController
     [HttpPost("logout")]
     public ActionResult Logout()
     {
-        Response.Cookies.Delete("accessToken", new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None });
-        Response.Cookies.Delete("refreshToken", new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.None });
+        Response.Cookies.Delete("accessToken", new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.Lax });
+        Response.Cookies.Delete("refreshToken", new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.Lax });
         
         return Ok(new Altavix.Application.Models.ApiResponseDto<string>
         {

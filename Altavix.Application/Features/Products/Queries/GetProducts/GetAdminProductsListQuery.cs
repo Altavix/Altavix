@@ -4,4 +4,19 @@ using MediatR;
 
 namespace Altavix.Application.Features.Products.Queries.GetProducts;
 
-public record GetAdminProductsListQuery(int PageNumber = 1, int PageSize = 10) : IRequest<PaginatedList<AdminProductVm>>;
+public class GetAdminProductsListQuery : IRequest<PaginatedList<AdminProductVm>>
+{
+    public int PageNumber { get; set; }
+    public int PageSize { get; set; }
+    public decimal? MinPrice { get; set; }
+    public decimal? MaxPrice { get; set; }
+    public Guid[]? BrandIds { get; set; }
+    public Guid[]? CategoryIds { get; set; }
+    public Dictionary<Guid, string[]>? CharacteristicsFilters { get; set; }
+
+    public GetAdminProductsListQuery(int pageNumber, int pageSize)
+    {
+        PageNumber = pageNumber;
+        PageSize = pageSize;
+    }
+}
