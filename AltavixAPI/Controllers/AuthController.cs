@@ -43,7 +43,8 @@ public class AuthController : BaseController
             HttpOnly = true,
             Secure = true, 
             SameSite = SameSiteMode.Lax,
-            Expires = DateTime.UtcNow.AddDays(7)
+            Expires = DateTime.UtcNow.AddDays(7),
+            Path = "/"
         };
         Response.Cookies.Append("refreshToken", refreshToken, refreshOptions);
 
@@ -52,7 +53,8 @@ public class AuthController : BaseController
             HttpOnly = true,
             Secure = true,
             SameSite = SameSiteMode.Lax,
-            Expires = DateTime.UtcNow.AddMinutes(60)
+            Expires = DateTime.UtcNow.AddMinutes(60),
+            Path = "/"
         };
         Response.Cookies.Append("accessToken", accessToken, accessOptions);
     }
@@ -105,8 +107,8 @@ public class AuthController : BaseController
     [HttpPost("logout")]
     public ActionResult Logout()
     {
-        Response.Cookies.Delete("accessToken", new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.Lax });
-        Response.Cookies.Delete("refreshToken", new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.Lax });
+        Response.Cookies.Delete("accessToken", new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.Lax, Path = "/" });
+        Response.Cookies.Delete("refreshToken", new CookieOptions { HttpOnly = true, Secure = true, SameSite = SameSiteMode.Lax, Path = "/" });
         
         return Ok(new Altavix.Application.Models.ApiResponseDto<string>
         {
