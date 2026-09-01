@@ -114,7 +114,7 @@ public class GetProductsListQueryHandler : BaseQueryHandler, IRequestHandler<Get
             var count = await reader.ReadSingleAsync<int>();
             var prods = (await reader.ReadAsync<ProductVm>()).ToList();
             return (count, prods);
-        }, parameters);
+        }, parameters, commandTimeout: 120);
 
         if (products.Any())
         {
@@ -130,7 +130,7 @@ public class GetProductsListQueryHandler : BaseQueryHandler, IRequestHandler<Get
             
             var images = (await QueryAsync<dynamic>(
                 "SELECT ProductId, ImageContent FROM tbProductImages WHERE ProductId IN @ProductIds", 
-                new { ProductIds = productIds })).ToList();
+                new { ProductIds = productIds }, commandTimeout: 120)).ToList();
 
             await QueryMultipleAsync(relatedSql, async reader =>
             {
