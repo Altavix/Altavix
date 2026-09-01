@@ -28,7 +28,8 @@ public class GetAdminProductByIdQueryHandler : BaseQueryHandler, IRequestHandler
             SELECT pc.CharacteristicId, pc.Value, c.Name 
             FROM tbProductCharacteristics pc
             INNER JOIN tbCharacteristics c ON pc.CharacteristicId = c.Id
-            WHERE pc.ProductId = @Id;
+            WHERE pc.ProductId = @Id
+            ORDER BY c.Name ASC;
         ";
 
         return await QueryMultipleAsync(sql, async reader =>
