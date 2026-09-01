@@ -14,6 +14,7 @@ public class GetAdminProductsListQuery : IRequest<PaginatedList<AdminProductVm>>
     public Guid[]? CategoryIds { get; set; }
     public Dictionary<Guid, string[]>? CharacteristicsFilters { get; set; }
     public string? SearchTerm { get; set; }
+    public string? SortBy { get; set; }
 
     public GetAdminProductsListQuery(int pageNumber, int pageSize, string? searchTerm = null)
     {

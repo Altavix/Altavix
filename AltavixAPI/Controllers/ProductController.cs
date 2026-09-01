@@ -26,7 +26,8 @@ public class ProductController : BaseController
         [FromQuery] Guid[]? brandIds = null,
         [FromQuery] Guid[]? categoryIds = null,
         [FromQuery] string? characteristicsJson = null,
-        [FromQuery] string? searchTerm = null)
+        [FromQuery] string? searchTerm = null,
+        [FromQuery] string? sortBy = null)
     {
         var dict = new Dictionary<Guid, string[]>();
         if (!string.IsNullOrEmpty(characteristicsJson))
@@ -36,7 +37,8 @@ public class ProductController : BaseController
 
         var query = new GetProductsListQuery(page, pageSize, minPrice, maxPrice, brandIds, categoryIds, dict)
         {
-            SearchTerm = searchTerm
+            SearchTerm = searchTerm,
+            SortBy = sortBy
         };
         var result = await Mediator.Send(query);
         return Ok(new ApiResponseDto<PaginatedList<ProductVm>> { Data = result, Message = "Success", Type = ResponseMessageType.Success });
@@ -60,7 +62,8 @@ public class ProductController : BaseController
         [FromQuery] Guid[]? brandIds = null,
         [FromQuery] Guid[]? categoryIds = null,
         [FromQuery] string? characteristicsJson = null,
-        [FromQuery] string? searchTerm = null)
+        [FromQuery] string? searchTerm = null,
+        [FromQuery] string? sortBy = null)
     {
         var dict = new Dictionary<Guid, string[]>();
         if (!string.IsNullOrEmpty(characteristicsJson))
@@ -75,7 +78,8 @@ public class ProductController : BaseController
             BrandIds = brandIds,
             CategoryIds = categoryIds,
             CharacteristicsFilters = dict,
-            SearchTerm = searchTerm
+            SearchTerm = searchTerm,
+            SortBy = sortBy
         });
         return Ok(new ApiResponseDto<PaginatedList<AdminProductVm>> { Data = result, Message = "Success", Type = ResponseMessageType.Success });
     }

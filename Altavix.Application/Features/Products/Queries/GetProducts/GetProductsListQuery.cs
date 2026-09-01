@@ -16,4 +16,5 @@ public record GetProductsListQuery(
 ) : IRequest<PaginatedList<ProductVm>>
 {
     public string? SearchTerm { get; set; }
+    public string? SortBy { get; set; }
 }

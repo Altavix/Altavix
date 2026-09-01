@@ -91,6 +91,26 @@ public class GetProductsListQueryHandler : BaseQueryHandler, IRequestHandler<Get
             orderBy = "ORDER BY SearchScore DESC, p.CreatedAt DESC";
         }
 
+        if (!string.IsNullOrEmpty(request.SortBy))
+        {
+            switch (request.SortBy.ToLower())
+            {
+                case "price_asc":
+                    orderBy = "ORDER BY p.Price ASC";
+                    break;
+                case "price_desc":
+                    orderBy = "ORDER BY p.Price DESC";
+                    break;
+                case "oldest":
+                    orderBy = "ORDER BY p.CreatedAt ASC";
+                    break;
+                case "newest":
+                default:
+                    orderBy = "ORDER BY p.CreatedAt DESC";
+                    break;
+            }
+        }
+
         var whereSql = "WHERE " + string.Join(" AND ", conditions);
 
         var sql = $@"
