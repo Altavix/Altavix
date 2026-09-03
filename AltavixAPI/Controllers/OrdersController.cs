@@ -63,6 +63,12 @@ public class OrdersController : ControllerBase
     [HttpPost("checkout")]
     public async Task<IActionResult> Checkout([FromBody] CheckoutOrderCommand command)
     {
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (Guid.TryParse(userIdString, out var userId))
+        {
+            command.ClientId = userId;
+        }
+
         var result = await _mediator.Send(command);
         return Ok(result);
     }

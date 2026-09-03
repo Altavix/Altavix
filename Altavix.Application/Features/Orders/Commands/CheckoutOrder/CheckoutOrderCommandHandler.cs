@@ -31,6 +31,13 @@ public class CheckoutOrderCommandHandler : IRequestHandler<CheckoutOrderCommand,
         if (order.Items.Count == 0)
             throw new InvalidOperationException("Cannot checkout an empty cart.");
 
+        // Always assign the order to the currently logged-in user who is checking out,
+        // even if the cart was originally created by another account on this browser.
+        if (request.ClientId.HasValue)
+        {
+            order.ClientId = request.ClientId;
+        }
+
         // Update User Profile if authenticated
         if (order.ClientId.HasValue)
         {

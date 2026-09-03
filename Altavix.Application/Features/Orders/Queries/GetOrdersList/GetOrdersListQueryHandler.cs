@@ -30,6 +30,7 @@ public class GetOrdersListQueryHandler : BaseQueryHandler, IRequestHandler<GetOr
             { "Id", "o.Id" },
             { "Number", "o.Number" },
             { "Created", "o.Created" },
+            { "Ordered", "COALESCE(o.Ordered, o.Created)" },
             { "ClientName", "o.ClientName" },
             { "City", "o.City" },
             { "TotalPrice", "o.TotalPrice" },
@@ -129,7 +130,7 @@ public class GetOrdersListQueryHandler : BaseQueryHandler, IRequestHandler<GetOr
 
         var whereClause = whereClauses.Any() ? "WHERE " + string.Join(" AND ", whereClauses) : "";
 
-        var sortColumn = "o.Created";
+        var sortColumn = "COALESCE(o.Ordered, o.Created)";
         var sortDirection = "DESC";
 
         if (!string.IsNullOrEmpty(request.SortColumn) && columnWhitelist.TryGetValue(request.SortColumn, out var mappedSortCol))

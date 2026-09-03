@@ -18,4 +18,5 @@ public class CheckoutOrderCommand : IRequest<bool>
     
     public Guid? DeliveryMethodId { get; set; }
     public Guid? PaymentMethodId { get; set; }
+    public Guid? ClientId { get; set; }
 }
