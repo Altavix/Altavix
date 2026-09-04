@@ -55,6 +55,7 @@ jobs:
           file: ./Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          provenance: false
           build-args: |
             APP_VERSION=${{ env.APP_VERSION }}
 
