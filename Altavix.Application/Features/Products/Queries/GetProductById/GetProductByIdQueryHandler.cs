@@ -21,7 +21,7 @@ public class GetProductByIdQueryHandler : BaseQueryHandler, IRequestHandler<GetP
             LEFT JOIN tbBrands b ON p.BrandId = b.Id
             WHERE p.Id = @Id;
 
-            SELECT ImageContent FROM tbProductImages WHERE ProductId = @Id;
+            SELECT ImagePath FROM tbProductImages WHERE ProductId = @Id ORDER BY Position ASC;
 
             SELECT CategoriesId FROM tbCategoryProduct WHERE ProductEntityId = @Id;
 

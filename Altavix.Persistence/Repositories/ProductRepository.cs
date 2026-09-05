@@ -15,16 +15,20 @@ public class ProductRepository : BaseRepository<ProductEntity>, IProductReposito
         var product = await _context.Products
             .Include(p => p.Categories)
             .Include(p => p.Characteristics)
+            .Include(p => p.Images.OrderBy(i => i.Position))
             .AsSplitQuery()
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
-            
-        if (product != null)
-        {
-            product.Images = _context.Set<ProductImageEntity>()
-                .Where(i => i.ProductId == id)
-                .ToList();
-        }
         
         return product;
+    }
+
+    public void RemoveImage(ProductImageEntity image)
+    {
+        _context.Set<ProductImageEntity>().Remove(image);
+    }
+
+    public void AddImage(ProductImageEntity image)
+    {
+        _context.Set<ProductImageEntity>().Add(image);
     }
 }

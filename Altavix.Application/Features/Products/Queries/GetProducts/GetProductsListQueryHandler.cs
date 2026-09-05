@@ -1,3 +1,4 @@
+using Altavix.Application.Features.Products.DTOs;
 using Altavix.Application.Features.Products.ViewModels;
 using Altavix.Application.Interfaces;
 using Altavix.Application.Models;
@@ -148,25 +149,29 @@ public class GetProductsListQueryHandler : BaseQueryHandler, IRequestHandler<Get
                 WHERE pc.ProductId IN @ProductIds;
             ";
             
-            var images = (await QueryAsync<dynamic>(
-                "SELECT ProductId, ImageContent FROM tbProductImages WHERE ProductId IN @ProductIds", 
+            var images = (await QueryAsync<ProductImageRowDto>(
+                "SELECT ProductId, ImagePath, Position FROM tbProductImages WHERE ProductId IN @ProductIds ORDER BY Position ASC", 
                 new { ProductIds = productIds }, commandTimeout: 120)).ToList();
 
             await QueryMultipleAsync(relatedSql, async reader =>
             {
-                var categories = (await reader.ReadAsync<dynamic>()).ToList();
-                var characteristics = (await reader.ReadAsync<dynamic>()).ToList();
+                var categories = (await reader.ReadAsync<CategoryProductRowDto>()).ToList();
+                var characteristics = (await reader.ReadAsync<ProductCharacteristicRowDto>()).ToList();
+
+                var imagesDict = images.GroupBy(x => x.ProductId).ToDictionary(g => g.Key, g => g.OrderBy(x => x.Position).Select(x => x.ImagePath).ToList());
+                var categoriesDict = categories.GroupBy(x => x.ProductEntityId).ToDictionary(g => g.Key, g => g.Select(x => x.CategoriesId).ToList());
+                var characteristicsDict = characteristics.GroupBy(x => x.ProductId).ToDictionary(g => g.Key, g => g.Select(x => new ProductCharacteristicDto
+                {
+                    CharacteristicId = x.CharacteristicId,
+                    Name = x.Name,
+                    Value = x.Value
+                }).ToList());
 
                 foreach (var product in products)
                 {
-                    product.Images = images.Where(i => i.ProductId == product.Id).Select(i => (string)i.ImageContent).ToList();
-                    product.CategoryIds = categories.Where(c => c.ProductEntityId == product.Id).Select(c => (Guid)c.CategoriesId).ToList();
-                    product.Characteristics = characteristics.Where(c => c.ProductId == product.Id).Select(c => new Altavix.Application.Features.Products.DTOs.ProductCharacteristicDto
-                    {
-                        CharacteristicId = (Guid)c.CharacteristicId,
-                        Name = (string)c.Name,
-                        Value = (string)c.Value
-                    }).ToList();
+                    product.Images = imagesDict.TryGetValue(product.Id, out var imgs) ? imgs : new List<string>();
+                    product.CategoryIds = categoriesDict.TryGetValue(product.Id, out var cats) ? cats : new List<Guid>();
+                    product.Characteristics = characteristicsDict.TryGetValue(product.Id, out var chars) ? chars : new List<ProductCharacteristicDto>();
                 }
                 return true;
             }, new { ProductIds = productIds });

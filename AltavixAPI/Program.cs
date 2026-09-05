@@ -102,6 +102,7 @@ try
 
     app.UseHttpsRedirection();
     app.UseCors("AllowFrontend");
+    app.UseStaticFiles();
     app.UseAuthentication();
     app.UseAuthorization();
 

@@ -1,3 +1,4 @@
+using Altavix.Application.Interfaces;
 using Altavix.Domain;
 using Altavix.Domain.Repositories;
 using MediatR;
@@ -10,15 +11,18 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
     private readonly IProductRepository _productRepository;
     private readonly ICategoryRepository _categoryRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IImageService _imageService;
 
     public UpdateProductCommandHandler(
         IProductRepository productRepository,
         ICategoryRepository categoryRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IImageService imageService)
     {
         _productRepository = productRepository;
         _categoryRepository = categoryRepository;
         _unitOfWork = unitOfWork;
+        _imageService = imageService;
     }
 
     public async Task<Unit> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
@@ -60,23 +64,50 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
         if (request.Images != null)
         {
             var existingImages = entity.Images.ToList();
-            var requestImagesSet = new HashSet<string>(request.Images);
-            
-            var imagesToRemove = existingImages.Where(i => !requestImagesSet.Contains(i.ImageContent)).ToList();
+            var existingByPath = existingImages
+                .GroupBy(e => e.ImagePath.Trim())
+                .ToDictionary(g => g.Key, g => g.First());
+
+            var requestedImages = request.Images
+                .Where(img => !string.IsNullOrWhiteSpace(img))
+                .Select(img => img.Trim())
+                .ToList();
+            var requestedSet = new HashSet<string>(requestedImages);
+
+            // 1. Remove images no longer present in request
+            var imagesToRemove = existingImages.Where(i => !requestedSet.Contains(i.ImagePath.Trim())).ToList();
             foreach (var img in imagesToRemove)
             {
-                entity.Images.Remove(img);
+                _productRepository.RemoveImage(img);
             }
 
-            var existingImagesSet = new HashSet<string>(existingImages.Select(e => e.ImageContent));
-            var newImageContents = request.Images.Where(img => !existingImagesSet.Contains(img)).ToList();
-            foreach (var imgContent in newImageContents)
+            // 2. Add or update images with their new position based on their index in the input array
+            for (int i = 0; i < request.Images.Count; i++)
             {
-                entity.Images.Add(new ProductImageEntity 
+                var rawImg = request.Images[i];
+                if (string.IsNullOrWhiteSpace(rawImg)) continue;
+                var img = rawImg.Trim();
+
+                if (existingByPath.TryGetValue(img, out var existingImage))
                 {
-                    ProductId = entity.Id,
-                    ImageContent = imgContent
-                });
+                    existingImage.Position = i;
+                }
+                else
+                {
+                    var imagePath = await _imageService.SaveImageAsync(img, cancellationToken);
+                    if (!string.IsNullOrEmpty(imagePath))
+                    {
+                        var newImgEntity = new ProductImageEntity 
+                        {
+                            Id = Guid.NewGuid(),
+                            ProductId = entity.Id,
+                            ImagePath = imagePath,
+                            Position = i
+                        };
+                        _productRepository.AddImage(newImgEntity);
+                        existingByPath[imagePath.Trim()] = newImgEntity;
+                    }
+                }
             }
         }
         

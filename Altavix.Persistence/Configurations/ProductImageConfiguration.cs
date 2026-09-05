@@ -12,8 +12,12 @@ public class ProductImageConfiguration : IEntityTypeConfiguration<ProductImageEn
 
         builder.HasKey(pi => pi.Id);
 
-        builder.Property(pi => pi.ImageContent)
+        builder.Property(pi => pi.ImagePath)
             .IsRequired()
             .HasColumnType("nvarchar(max)");
+
+        builder.Property(pi => pi.Position)
+            .IsRequired()
+            .HasDefaultValue(0);
     }
 }

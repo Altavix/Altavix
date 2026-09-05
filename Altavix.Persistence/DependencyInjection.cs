@@ -19,9 +19,10 @@ public static class DependencyInjection
 
         services.AddScoped<Altavix.Domain.Repositories.IUnitOfWork, Repositories.UnitOfWork>();
         services.AddScoped<IAltavixDbContext>(provider =>
-            (IAltavixDbContext)provider.GetService<AltavixDbContext>());
+            provider.GetRequiredService<AltavixDbContext>());
         services.AddScoped<IDbConnectionFactory, Factories.DbConnectionFactory>();
         services.AddScoped<IJwtProvider, JwtProvider>();
+        services.AddScoped<IImageService, ImageService>();
         services.AddScoped(typeof(Altavix.Domain.Repositories.IBaseRepository<>), typeof(Repositories.BaseRepository<>));
         var repositoryTypes = typeof(DependencyInjection).Assembly.GetTypes()
             .Where(t => t.IsClass && !t.IsAbstract && t.Name.EndsWith("Repository") && t.Name != "BaseRepository`1");

@@ -482,3 +482,7 @@ $RECYCLE.BIN/
 FakesAssemblies/
 
 secrets.json
+
+# Ignore uploaded product images
+AltavixAPI/wwwroot/images/products/*
+!AltavixAPI/wwwroot/images/products/.gitkeep
