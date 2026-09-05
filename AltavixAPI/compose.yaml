@@ -1,7 +1,0 @@
-﻿services:
-  altavixapi:
-    image: altavixapi
-    build:
-      context: .
-      dockerfile: Dockerfile
-

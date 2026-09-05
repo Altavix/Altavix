@@ -75,4 +75,6 @@ jobs:
             cd /opt/altavix
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker-compose pull backend
+            docker-compose stop backend || true
+            docker-compose rm -f backend || true
             docker-compose up -d --remove-orphans backend
