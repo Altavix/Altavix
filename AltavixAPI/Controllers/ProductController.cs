@@ -55,7 +55,7 @@ public class ProductController : BaseController
     [HttpGet("admin")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponseDto<PaginatedList<AdminProductVm>>>> GetAdmin(
-        [FromQuery] int pageNumber = 1,
+        [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
         [FromQuery] decimal? minPrice = null,
         [FromQuery] decimal? maxPrice = null,
@@ -71,7 +71,7 @@ public class ProductController : BaseController
             try { dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<Guid, string[]>>(characteristicsJson) ?? dict; } catch { }
         }
 
-        var result = await Mediator.Send(new GetAdminProductsListQuery(pageNumber, pageSize)
+        var result = await Mediator.Send(new GetAdminProductsListQuery(page, pageSize)
         {
             MinPrice = minPrice,
             MaxPrice = maxPrice,
