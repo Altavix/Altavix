@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: altavix_db
+    restart: always
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${DB_PASSWORD:-Altavix_StrongPassword123!}"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqldata:/var/opt/mssql
+    networks:
+      - altavix_network
+
+  backend:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/altavix-backend:latest
+    container_name: altavix_backend
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - AdminRegistrationKey=KosenkElectro05092026
+      - ConnectStr=Server=db;Database=AltavixDb;User Id=sa;Password="${DB_PASSWORD:-Altavix_StrongPassword123!}";TrustServerCertificate=True;
+    depends_on:
+      - db
+    networks:
+      - altavix_network
+
+  frontend:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/altavix-frontend:latest
+    container_name: altavix_frontend
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/ssl/cloudflare:/etc/ssl/cloudflare:ro
+    depends_on:
+      - backend
+    networks:
+      - altavix_network
+
+volumes:
+  sqldata:
+
+networks:
+  altavix_network:
+    driver: bridge
